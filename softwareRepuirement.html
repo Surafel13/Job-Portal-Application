@@ -1,0 +1,3766 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SRS - Job Portal & AI-Powered Recruitment Platform</title>
+    <style>
+      :root {
+        --primary: #1a365d;
+        --secondary: #2b6cb0;
+        --accent: #3182ce;
+        --light-bg: #f7fafc;
+        --border: #e2e8f0;
+        --text: #1a202c;
+        --text-light: #4a5568;
+        --table-header: #edf2f7;
+        --success: #276749;
+        --warning: #975a16;
+        --danger: #9b2c2c;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        color: var(--text);
+        line-height: 1.6;
+        background: #fff;
+        font-size: 12pt;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Title Page */
+      .title-page {
+        text-align: center;
+        padding: 120px 40px;
+        page-break-after: always;
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-bottom: 3px solid var(--primary);
+      }
+      .title-page .doc-type {
+        font-size: 14pt;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: var(--secondary);
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+      .title-page h1 {
+        font-size: 32pt;
+        color: var(--primary);
+        margin-bottom: 15px;
+        line-height: 1.3;
+        font-weight: 700;
+      }
+      .title-page .subtitle {
+        font-size: 16pt;
+        color: var(--text-light);
+        margin-bottom: 40px;
+        font-weight: 400;
+      }
+      .title-page .version-info {
+        display: flex;
+        gap: 30px;
+        justify-content: center;
+        font-size: 11pt;
+        color: var(--text-light);
+        margin-top: 30px;
+      }
+      .title-page .version-info div {
+        border: 1px solid var(--border);
+        padding: 12px 24px;
+        border-radius: 6px;
+        background: var(--light-bg);
+      }
+      .title-page .version-info span {
+        display: block;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      /* Table of Contents */
+      .toc {
+        page-break-after: always;
+        padding: 30px 20px;
+      }
+      .toc h2 {
+        color: var(--primary);
+        font-size: 22pt;
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 10px;
+        margin-bottom: 25px;
+      }
+      .toc ul {
+        list-style: none;
+        padding-left: 0;
+      }
+      .toc ul li {
+        padding: 4px 0;
+        font-size: 11pt;
+      }
+      .toc ul li.toc-level-1 {
+        font-weight: 700;
+        color: var(--primary);
+        margin-top: 12px;
+        font-size: 12pt;
+      }
+      .toc ul li.toc-level-2 {
+        padding-left: 25px;
+        color: var(--text-light);
+      }
+      .toc ul li.toc-level-3 {
+        padding-left: 50px;
+        color: var(--text-light);
+        font-size: 10.5pt;
+      }
+
+      /* Section Styling */
+      .section {
+        page-break-before: always;
+        padding-top: 20px;
+      }
+      h2.section-title {
+        color: var(--primary);
+        font-size: 20pt;
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 8px;
+        margin-bottom: 20px;
+        counter-increment: section-counter;
+      }
+      h2.section-title::before {
+        content: counter(section-counter) ". ";
+      }
+      h3 {
+        color: var(--secondary);
+        font-size: 14pt;
+        margin-top: 25px;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+      h4 {
+        color: var(--text);
+        font-size: 12pt;
+        margin-top: 18px;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      p {
+        margin-bottom: 10px;
+        font-size: 11pt;
+      }
+
+      /* Tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+        font-size: 10.5pt;
+        page-break-inside: avoid;
+      }
+      table th {
+        background: var(--table-header);
+        color: var(--primary);
+        font-weight: 600;
+        text-align: left;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        font-size: 10pt;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      table td {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        vertical-align: top;
+      }
+      table tr:nth-child(even) {
+        background: var(--light-bg);
+      }
+
+      /* Requirement IDs */
+      .req-id {
+        font-family: "Consolas", "Monaco", monospace;
+        font-weight: 700;
+        color: var(--secondary);
+        white-space: nowrap;
+        font-size: 10pt;
+      }
+      .req-type {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 9pt;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .req-type.fr {
+        background: #ebf8ff;
+        color: #2b6cb0;
+      }
+      .req-type.nfr {
+        background: #fefcbf;
+        color: #975a16;
+      }
+
+      /* Priority badges */
+      .priority {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 9pt;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .priority-high {
+        background: #fed7d7;
+        color: #9b2c2c;
+      }
+      .priority-medium {
+        background: #fefcbf;
+        color: #975a16;
+      }
+      .priority-low {
+        background: #c6f6d5;
+        color: #276749;
+      }
+
+      /* Use Case Styling */
+      .use-case {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 15px 20px;
+        margin: 15px 0;
+        background: var(--light-bg);
+      }
+      .use-case h4 {
+        margin-top: 0;
+        color: var(--primary);
+      }
+      .use-case-grid {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 6px 12px;
+        font-size: 10.5pt;
+        margin: 8px 0;
+      }
+      .use-case-grid .label {
+        font-weight: 600;
+        color: var(--text-light);
+      }
+
+      /* Workflow / Flow */
+      .workflow {
+        border: 1px dashed var(--border);
+        border-radius: 6px;
+        padding: 15px 20px;
+        margin: 15px 0;
+        background: #fefefe;
+      }
+      .workflow ol,
+      .workflow ul {
+        padding-left: 25px;
+        font-size: 10.5pt;
+      }
+      .workflow li {
+        margin-bottom: 4px;
+      }
+      .workflow .flow-arrow {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* Callout boxes */
+      .callout {
+        border-left: 4px solid var(--accent);
+        background: #ebf8ff;
+        padding: 12px 16px;
+        margin: 12px 0;
+        border-radius: 0 4px 4px 0;
+        font-size: 10.5pt;
+      }
+      .callout.warning {
+        border-left-color: #d69e2e;
+        background: #fefcbf;
+      }
+      .callout.danger {
+        border-left-color: #e53e3e;
+        background: #fed7d7;
+      }
+      .callout.success {
+        border-left-color: #38a169;
+        background: #c6f6d5;
+      }
+
+      /* Lists */
+      ul,
+      ol {
+        padding-left: 25px;
+        margin-bottom: 10px;
+        font-size: 11pt;
+      }
+      li {
+        margin-bottom: 3px;
+      }
+
+      /* Code block */
+      code {
+        font-family: "Consolas", "Monaco", monospace;
+        background: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 10pt;
+      }
+
+      /* Footer */
+      .doc-footer {
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+        border-top: 1px solid var(--border);
+        font-size: 9pt;
+        color: var(--text-light);
+        page-break-inside: avoid;
+      }
+
+      /* Page number placeholder */
+      .page-number::after {
+        content: "Page " counter(page);
+      }
+
+      /* Responsive */
+      @media print {
+        body {
+          padding: 0;
+          font-size: 10pt;
+        }
+        .title-page {
+          min-height: 90vh;
+        }
+        h2.section-title {
+          font-size: 16pt;
+        }
+        table {
+          font-size: 9pt;
+        }
+        .section {
+          page-break-before: always;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+          font-size: 10pt;
+        }
+        .title-page h1 {
+          font-size: 22pt;
+        }
+        .use-case-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ==================== TITLE PAGE ==================== -->
+    <div class="title-page">
+      <div class="doc-type">Software Requirements Specification</div>
+      <h1>Job Portal &amp;<br />AI-Powered Recruitment Platform</h1>
+      <p class="subtitle">Master Specification for Design &amp; Development</p>
+      <div
+        style="font-size: 12pt; color: var(--text-light); margin-bottom: 20px"
+      >
+        <strong>Product Name:</strong> HireFlow AI Recruitment Suite
+      </div>
+      <div class="version-info">
+        <div><span>Version</span> 2.4.0</div>
+        <div><span>Status</span> Approved for Development</div>
+        <div><span>Date</span> November 15, 2025</div>
+        <div><span>Classification</span> Internal / Confidential</div>
+      </div>
+      <p style="margin-top: 40px; font-size: 10pt; color: var(--text-light)">
+        Prepared by: Product Engineering Team &nbsp;|&nbsp; Reviewed by:
+        Architecture Review Board<br />
+        Approved by: VP of Engineering
+      </p>
+    </div>
+
+    <!-- ==================== TABLE OF CONTENTS ==================== -->
+    <div class="toc">
+      <h2>Table of Contents</h2>
+      <ul>
+        <li class="toc-level-1">1. Introduction</li>
+        <li class="toc-level-2">1.1 Purpose</li>
+        <li class="toc-level-2">1.2 Document Conventions</li>
+        <li class="toc-level-2">1.3 Intended Audience</li>
+        <li class="toc-level-2">1.4 Product Scope</li>
+        <li class="toc-level-2">1.5 References</li>
+        <li class="toc-level-1">2. Overall Description</li>
+        <li class="toc-level-2">2.1 Product Perspective</li>
+        <li class="toc-level-2">2.2 Product Functions Summary</li>
+        <li class="toc-level-2">2.3 User Classes and Characteristics</li>
+        <li class="toc-level-2">2.4 Operating Environment</li>
+        <li class="toc-level-2">2.5 Design and Implementation Constraints</li>
+        <li class="toc-level-2">2.6 Assumptions and Dependencies</li>
+        <li class="toc-level-1">3. System Architecture Overview</li>
+        <li class="toc-level-2">3.1 High-Level Architecture</li>
+        <li class="toc-level-2">3.2 Module Overview</li>
+        <li class="toc-level-2">3.3 Technology Stack Overview</li>
+        <li class="toc-level-1">4. Functional Requirements</li>
+        <li class="toc-level-2">
+          4.1 Authentication, Authorization &amp; Role Management (FR-AUTH)
+        </li>
+        <li class="toc-level-2">4.2 Job Seeker Profile Management (FR-SEEK)</li>
+        <li class="toc-level-2">4.3 Employer &amp; Company Profile (FR-EMP)</li>
+        <li class="toc-level-2">4.4 Job Posting &amp; Management (FR-JOB)</li>
+        <li class="toc-level-2">4.5 Job Search &amp; Discovery (FR-SRCH)</li>
+        <li class="toc-level-2">4.6 Applications &amp; Tracking (FR-APP)</li>
+        <li class="toc-level-2">4.7 Employer Applicant Management (FR-EAP)</li>
+        <li class="toc-level-2">
+          4.8 Admin Dashboard &amp; Reporting (FR-ADM)
+        </li>
+        <li class="toc-level-2">4.9 AI-Powered Features (FR-AI)</li>
+        <li class="toc-level-2">
+          4.10 Notifications &amp; Communication (FR-NOT)
+        </li>
+        <li class="toc-level-2">
+          4.11 Semantic Search &amp; Future Capabilities (FR-SEM)
+        </li>
+        <li class="toc-level-1">5. Non-Functional Requirements</li>
+        <li class="toc-level-2">5.1 Security &amp; Privacy (NFR-SEC)</li>
+        <li class="toc-level-2">
+          5.2 Performance &amp; Scalability (NFR-PERF)
+        </li>
+        <li class="toc-level-2">
+          5.3 Reliability &amp; Availability (NFR-REL)
+        </li>
+        <li class="toc-level-2">5.4 Auditability &amp; Compliance (NFR-AUD)</li>
+        <li class="toc-level-2">5.5 AI Safety &amp; Ethics (NFR-AI)</li>
+        <li class="toc-level-2">5.6 Usability &amp; Accessibility (NFR-USA)</li>
+        <li class="toc-level-1">6. Business Rules</li>
+        <li class="toc-level-1">7. Use Cases &amp; Workflows</li>
+        <li class="toc-level-2">7.1 Primary Use Cases</li>
+        <li class="toc-level-2">7.2 Key Workflows</li>
+        <li class="toc-level-1">8. Data Requirements</li>
+        <li class="toc-level-2">8.1 Core Data Entities</li>
+        <li class="toc-level-2">8.2 Data Retention Policies</li>
+        <li class="toc-level-1">9. External Interface Requirements</li>
+        <li class="toc-level-1">10. Acceptance Criteria</li>
+        <li class="toc-level-1">11. System Constraints</li>
+        <li class="toc-level-1">12. Appendix</li>
+      </ul>
+    </div>
+
+    <!-- ==================== SECTION 1: INTRODUCTION ==================== -->
+    <div class="section">
+      <h2 class="section-title">Introduction</h2>
+
+      <h3>1.1 Purpose</h3>
+      <p>
+        This Software Requirements Specification (SRS) document provides a
+        complete and detailed description of the functional and non-functional
+        requirements for the <strong>HireFlow AI Recruitment Suite</strong> — a
+        modern, web-based Job Portal and AI-Powered Recruitment Platform. The
+        document serves as the authoritative reference for software architects,
+        developers, QA engineers, product managers, and stakeholders throughout
+        the entire software development lifecycle.
+      </p>
+      <p>
+        The platform connects three primary user groups —
+        <strong>Job Seekers</strong>, <strong>Employers/Recruiters</strong>, and
+        <strong>Administrators</strong> — and leverages AI/ML capabilities to
+        enhance matching, streamline hiring workflows, and provide data-driven
+        recruitment insights.
+      </p>
+
+      <h3>1.2 Document Conventions</h3>
+      <p>The following conventions are used throughout this document:</p>
+      <table>
+        <tr>
+          <th>Convention</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>FR-nnn</code></td>
+          <td>
+            Functional Requirement identifier (e.g., <code>FR-AUTH-001</code>)
+          </td>
+        </tr>
+        <tr>
+          <td><code>NFR-nnn</code></td>
+          <td>
+            Non-Functional Requirement identifier (e.g.,
+            <code>NFR-SEC-001</code>)
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Must / Shall</strong></td>
+          <td>Mandatory requirement — non-negotiable for release</td>
+        </tr>
+        <tr>
+          <td><strong>Should</strong></td>
+          <td>
+            Recommended requirement — highly desirable but may be deferred with
+            approval
+          </td>
+        </tr>
+        <tr>
+          <td><strong>May</strong></td>
+          <td>Optional requirement — future enhancement or stretch goal</td>
+        </tr>
+        <tr>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Critical for MVP / core functionality</td>
+        </tr>
+        <tr>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Important for MVP but with acceptable workarounds</td>
+        </tr>
+        <tr>
+          <td><span class="priority priority-low">LOW</span></td>
+          <td>Nice-to-have; can be deferred to later releases</td>
+        </tr>
+      </table>
+
+      <h3>1.3 Intended Audience</h3>
+      <ul>
+        <li>
+          <strong>Product Managers</strong> — to validate scope and prioritize
+          features
+        </li>
+        <li>
+          <strong>Software Architects &amp; Developers</strong> — to design and
+          implement the system
+        </li>
+        <li>
+          <strong>QA Engineers</strong> — to derive test plans and test cases
+        </li>
+        <li>
+          <strong>UX/UI Designers</strong> — to inform interface design and
+          interaction patterns
+        </li>
+        <li>
+          <strong>DevOps/SRE Teams</strong> — to plan infrastructure,
+          deployment, and monitoring
+        </li>
+        <li>
+          <strong>Security &amp; Compliance Officers</strong> — to review data
+          handling and audit requirements
+        </li>
+        <li>
+          <strong>Stakeholders &amp; Investors</strong> — to understand product
+          capabilities
+        </li>
+      </ul>
+
+      <h3>1.4 Product Scope</h3>
+      <p>The platform delivers the following high-level capabilities:</p>
+      <ul>
+        <li>
+          Comprehensive job seeker profile management with skills, education,
+          experience, certifications, resumes, and job preferences
+        </li>
+        <li>
+          Employer/Company profile management with verification, branding, and
+          team collaboration
+        </li>
+        <li>
+          End-to-end job posting lifecycle: creation, publishing, editing,
+          closing, and archival
+        </li>
+        <li>
+          Advanced job search with multi-criteria filtering, sorting,
+          pagination, and detailed job views
+        </li>
+        <li>
+          Job application workflows with saved jobs, application tracking, and
+          real-time notifications
+        </li>
+        <li>
+          Employer applicant management: shortlisting, interview scheduling, and
+          hiring decisions
+        </li>
+        <li>
+          Full administrative dashboard: user/job moderation, platform
+          analytics, and reporting
+        </li>
+        <li>
+          <strong>AI-powered features:</strong> personalized job
+          recommendations, job-match scoring, match explanations, resume
+          analysis, job-description generation, applicant matching, and career
+          assistance
+        </li>
+        <li>
+          Future-ready architecture supporting semantic search, embeddings,
+          vector search, and Retrieval-Augmented Generation (RAG)
+        </li>
+      </ul>
+
+      <h3>1.5 References</h3>
+      <table>
+        <tr>
+          <th>Reference</th>
+          <th>Description</th>
+          <th>Version</th>
+        </tr>
+        <tr>
+          <td>GDPR</td>
+          <td>EU General Data Protection Regulation</td>
+          <td>2016/679</td>
+        </tr>
+        <tr>
+          <td>CCPA/CPRA</td>
+          <td>California Consumer Privacy Act</td>
+          <td>2023 Amendment</td>
+        </tr>
+        <tr>
+          <td>WCAG 2.1</td>
+          <td>Web Content Accessibility Guidelines</td>
+          <td>AA Level</td>
+        </tr>
+        <tr>
+          <td>OWASP Top 10</td>
+          <td>Web Application Security Risks</td>
+          <td>2023</td>
+        </tr>
+        <tr>
+          <td>NIST AI RMF</td>
+          <td>AI Risk Management Framework</td>
+          <td>1.0</td>
+        </tr>
+        <tr>
+          <td>ISO/IEC 27001</td>
+          <td>Information Security Management</td>
+          <td>2022</td>
+        </tr>
+        <tr>
+          <td>SOX</td>
+          <td>Sarbanes-Oxley Act (for public company compliance)</td>
+          <td>2002</td>
+        </tr>
+        <tr>
+          <td>EEO</td>
+          <td>Equal Employment Opportunity Regulations</td>
+          <td>US Federal</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ==================== SECTION 2: OVERALL DESCRIPTION ==================== -->
+    <div class="section">
+      <h2 class="section-title">Overall Description</h2>
+
+      <h3>2.1 Product Perspective</h3>
+      <p>
+        HireFlow AI Recruitment Suite is a standalone, cloud-native web
+        application built on a microservices-oriented architecture. It
+        integrates with external services including:
+      </p>
+      <ul>
+        <li>
+          <strong>Email providers</strong> (SendGrid, SES) for transactional and
+          notification emails
+        </li>
+        <li><strong>SMS gateways</strong> (Twilio) for SMS notifications</li>
+        <li>
+          <strong>Cloud storage</strong> (AWS S3 / Azure Blob) for resume and
+          document storage
+        </li>
+        <li>
+          <strong>AI/ML model hosting</strong> (OpenAI API, HuggingFace, or
+          self-hosted models) for NLP and embedding generation
+        </li>
+        <li>
+          <strong>Vector database</strong> (Pinecone, Weaviate, or pgvector) for
+          semantic search and RAG
+        </li>
+        <li>
+          <strong>OAuth providers</strong> (Google, LinkedIn, GitHub) for social
+          sign-in
+        </li>
+        <li>
+          <strong>Payment gateways</strong> (Stripe) for premium employer
+          subscriptions
+        </li>
+        <li>
+          <strong>Analytics tools</strong> (Google Analytics, Mixpanel) for
+          product metrics
+        </li>
+      </ul>
+
+      <h3>2.2 Product Functions Summary</h3>
+      <table>
+        <tr>
+          <th>Module</th>
+          <th>Key Functions</th>
+          <th>Target Users</th>
+        </tr>
+        <tr>
+          <td>Authentication &amp; User Management</td>
+          <td>
+            Registration, login, SSO, MFA, role assignment, profile management
+          </td>
+          <td>All users</td>
+        </tr>
+        <tr>
+          <td>Job Seeker Profile</td>
+          <td>
+            Skills, education, experience, certifications, resume upload,
+            preferences
+          </td>
+          <td>Job Seekers</td>
+        </tr>
+        <tr>
+          <td>Employer &amp; Company Profile</td>
+          <td>
+            Company details, branding, team management, subscription plans
+          </td>
+          <td>Employers/Recruiters</td>
+        </tr>
+        <tr>
+          <td>Job Posting &amp; Management</td>
+          <td>Create, publish, edit, close, duplicate, archive job postings</td>
+          <td>Employers/Recruiters</td>
+        </tr>
+        <tr>
+          <td>Job Search &amp; Discovery</td>
+          <td>Search, filter, sort, paginate, view details, saved searches</td>
+          <td>Job Seekers</td>
+        </tr>
+        <tr>
+          <td>Applications &amp; Tracking</td>
+          <td>Apply, save jobs, track application status, withdrawal</td>
+          <td>Job Seekers</td>
+        </tr>
+        <tr>
+          <td>Applicant Management</td>
+          <td>Review, shortlist, reject, schedule interviews, hire</td>
+          <td>Employers/Recruiters</td>
+        </tr>
+        <tr>
+          <td>Admin Dashboard</td>
+          <td>
+            User moderation, job moderation, analytics, reports, system config
+          </td>
+          <td>Administrators</td>
+        </tr>
+        <tr>
+          <td>AI Engine</td>
+          <td>
+            Recommendations, match scoring, explanations, resume analysis, JD
+            generation
+          </td>
+          <td>All users (via API)</td>
+        </tr>
+        <tr>
+          <td>Notifications</td>
+          <td>Email, SMS, in-app, push notifications, preferences</td>
+          <td>All users</td>
+        </tr>
+        <tr>
+          <td>Semantic Search</td>
+          <td>Embedding-based search, vector search, RAG-powered Q&A</td>
+          <td>All users</td>
+        </tr>
+      </table>
+
+      <h3>2.3 User Classes and Characteristics</h3>
+      <table>
+        <tr>
+          <th>User Class</th>
+          <th>Characteristics</th>
+          <th>Key Needs</th>
+          <th>Estimated %</th>
+        </tr>
+        <tr>
+          <td><strong>Job Seeker</strong></td>
+          <td>
+            Technical proficiency varies; mobile-heavy usage; high volume of
+            daily active users
+          </td>
+          <td>
+            Find relevant jobs quickly, track applications, receive personalized
+            recommendations
+          </td>
+          <td>60%</td>
+        </tr>
+        <tr>
+          <td><strong>Employer/Recruiter</strong></td>
+          <td>
+            Business users; expect efficiency tools; need team collaboration
+          </td>
+          <td>Publish jobs, screen candidates, manage hiring pipeline</td>
+          <td>25%</td>
+        </tr>
+        <tr>
+          <td><strong>Administrator</strong></td>
+          <td>Internal staff; platform oversight; content moderation</td>
+          <td>
+            Monitor health, moderate content, generate reports, manage users
+          </td>
+          <td>5%</td>
+        </tr>
+        <tr>
+          <td><strong>Super Admin</strong></td>
+          <td>Limited internal; system-level configuration</td>
+          <td>System configuration, feature flags, global settings</td>
+          <td>1%</td>
+        </tr>
+        <tr>
+          <td><strong>API Consumer</strong></td>
+          <td>External systems; authenticated via API keys</td>
+          <td>Integration with third-party HR systems</td>
+          <td>9%</td>
+        </tr>
+      </table>
+
+      <h3>2.4 Operating Environment</h3>
+      <table>
+        <tr>
+          <th>Component</th>
+          <th>Requirement</th>
+        </tr>
+        <tr>
+          <td>Frontend</td>
+          <td>
+            Modern web browsers: Chrome ≥110, Firefox ≥115, Safari ≥16, Edge
+            ≥110; responsive from 320px to 4K
+          </td>
+        </tr>
+        <tr>
+          <td>Backend</td>
+          <td>Node.js 20 LTS or Java 21 LTS; containerized with Docker</td>
+        </tr>
+        <tr>
+          <td>Database</td>
+          <td>
+            PostgreSQL 15+ with pgvector extension; Redis 7+ for caching &amp;
+            queues
+          </td>
+        </tr>
+        <tr>
+          <td>AI/ML</td>
+          <td>
+            Python 3.11+ microservices; model serving via FastAPI or Triton
+          </td>
+        </tr>
+        <tr>
+          <td>Cloud</td>
+          <td>
+            AWS (primary) / Azure (secondary); Kubernetes (EKS/AKS)
+            orchestration
+          </td>
+        </tr>
+        <tr>
+          <td>CDN</td>
+          <td>CloudFront / Cloudflare for static assets</td>
+        </tr>
+        <tr>
+          <td>Monitoring</td>
+          <td>
+            Prometheus + Grafana; ELK stack for logging; Sentry for error
+            tracking
+          </td>
+        </tr>
+      </table>
+
+      <h3>2.5 Design and Implementation Constraints</h3>
+      <ul>
+        <li>
+          <strong>Web-based:</strong> The platform must be accessible via modern
+          web browsers; no native mobile app is required for MVP (responsive web
+          design shall suffice)
+        </li>
+        <li>
+          <strong>Cloud-native:</strong> Deployed on cloud infrastructure with
+          auto-scaling and high-availability configurations
+        </li>
+        <li>
+          <strong>API-first design:</strong> All backend functionality must be
+          exposed via RESTful APIs (JSON) to support future mobile apps and
+          third-party integrations
+        </li>
+        <li>
+          <strong>Multi-tenancy:</strong> The system must support multi-tenant
+          architecture with strict data isolation per organization
+        </li>
+        <li>
+          <strong>Language:</strong> English is the primary language; i18n
+          framework must be in place for future localization
+        </li>
+        <li>
+          <strong>Accessibility:</strong> Must comply with WCAG 2.1 Level AA
+        </li>
+        <li>
+          <strong>Data residency:</strong> Support for EU data residency (GDPR)
+          and US data residency
+        </li>
+        <li>
+          <strong>AI model constraints:</strong> Must support hot-swapping of AI
+          models without service interruption
+        </li>
+      </ul>
+
+      <h3>2.6 Assumptions and Dependencies</h3>
+      <table>
+        <tr>
+          <th>Assumption</th>
+          <th>Impact if Invalid</th>
+        </tr>
+        <tr>
+          <td>Users have reliable internet connectivity</td>
+          <td>Offline mode would be required (out of scope for MVP)</td>
+        </tr>
+        <tr>
+          <td>Users have valid email addresses for registration</td>
+          <td>Alternative verification methods needed</td>
+        </tr>
+        <tr>
+          <td>
+            AI model API endpoints will be available with sufficient rate limits
+          </td>
+          <td>Fallback to rule-based matching required</td>
+        </tr>
+        <tr>
+          <td>
+            Employers have legal authority to post jobs in their jurisdiction
+          </td>
+          <td>Additional legal/compliance verification needed</td>
+        </tr>
+        <tr>
+          <td>
+            Third-party integrations (email, SMS, payment) will maintain their
+            SLAs
+          </td>
+          <td>Fallback providers needed</td>
+        </tr>
+        <tr>
+          <td>
+            Vector database will support the required QPS for semantic search
+          </td>
+          <td>Alternative indexing strategies needed</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ==================== SECTION 3: SYSTEM ARCHITECTURE OVERVIEW ==================== -->
+    <div class="section">
+      <h2 class="section-title">System Architecture Overview</h2>
+
+      <h3>3.1 High-Level Architecture</h3>
+      <p>
+        The platform follows a
+        <strong>microservices-oriented architecture</strong> with a
+        <strong>React/Next.js frontend</strong>,
+        <strong>Node.js/Java backend services</strong>,
+        <strong>Python AI microservices</strong>, and
+        <strong>PostgreSQL + Redis + Vector DB</strong> for data persistence.
+      </p>
+
+      <table>
+        <tr>
+          <th>Layer</th>
+          <th>Components</th>
+          <th>Purpose</th>
+        </tr>
+        <tr>
+          <td>Client Layer</td>
+          <td>React 18 SPA, Next.js SSR, PWA shell, WebSocket client</td>
+          <td>User interface, real-time updates</td>
+        </tr>
+        <tr>
+          <td>API Gateway</td>
+          <td>Kong / AWS API Gateway, rate limiting, auth middleware</td>
+          <td>Centralized routing, authentication, throttling</td>
+        </tr>
+        <tr>
+          <td>Application Services</td>
+          <td>
+            Auth Service, User Service, Job Service, Application Service,
+            Employer Service, Notification Service, Admin Service
+          </td>
+          <td>Core business logic</td>
+        </tr>
+        <tr>
+          <td>AI Services</td>
+          <td>
+            Recommendation Engine, Match Scoring Service, Resume Analyzer, JD
+            Generator, Semantic Search Service, RAG Pipeline
+          </td>
+          <td>AI-powered features</td>
+        </tr>
+        <tr>
+          <td>Data Layer</td>
+          <td>
+            PostgreSQL (+pgvector), Redis, Object Storage (S3), Vector Database
+            (Pinecone/Weaviate)
+          </td>
+          <td>Data persistence and caching</td>
+        </tr>
+        <tr>
+          <td>Infrastructure</td>
+          <td>
+            Kubernetes, Docker, Terraform, CI/CD (GitHub Actions),
+            Prometheus/Grafana, ELK
+          </td>
+          <td>Deployment, orchestration, observability</td>
+        </tr>
+      </table>
+
+      <h3>3.2 Module Overview</h3>
+      <table>
+        <tr>
+          <th>Module ID</th>
+          <th>Module Name</th>
+          <th>Primary Responsibility</th>
+          <th>Dependencies</th>
+        </tr>
+        <tr>
+          <td>MOD-AUTH</td>
+          <td>Authentication &amp; Authorization</td>
+          <td>User registration, login, JWT, RBAC, MFA, SSO</td>
+          <td>User Service, Notification Service</td>
+        </tr>
+        <tr>
+          <td>MOD-USER</td>
+          <td>User Profile Management</td>
+          <td>Job seeker and employer profile CRUD</td>
+          <td>Auth Service, Object Storage</td>
+        </tr>
+        <tr>
+          <td>MOD-JOB</td>
+          <td>Job Posting Management</td>
+          <td>Job CRUD, publishing, expiration, templates</td>
+          <td>Employer Service, AI JD Generator</td>
+        </tr>
+        <tr>
+          <td>MOD-SEARCH</td>
+          <td>Search &amp; Discovery</td>
+          <td>Full-text search, filtering, sorting, semantic search</td>
+          <td>PostgreSQL FTS, Vector DB</td>
+        </tr>
+        <tr>
+          <td>MOD-APP</td>
+          <td>Application Processing</td>
+          <td>Applications, saved jobs, status tracking</td>
+          <td>Job Service, Notification Service</td>
+        </tr>
+        <tr>
+          <td>MOD-EMP</td>
+          <td>Employer &amp; Company Management</td>
+          <td>Company profiles, teams, subscriptions, credits</td>
+          <td>Auth Service, Payment Gateway</td>
+        </tr>
+        <tr>
+          <td>MOD-ADMIN</td>
+          <td>Admin &amp; Moderation</td>
+          <td>User moderation, job moderation, analytics, reports</td>
+          <td>All modules</td>
+        </tr>
+        <tr>
+          <td>MOD-AI</td>
+          <td>AI Engine</td>
+          <td>
+            Recommendations, match scoring, resume analysis, JD generation,
+            semantic search, RAG
+          </td>
+          <td>Vector DB, LLM APIs, Embedding models</td>
+        </tr>
+        <tr>
+          <td>MOD-NOT</td>
+          <td>Notification &amp; Communication</td>
+          <td>Email, SMS, in-app, push, notification preferences</td>
+          <td>Email/SMS providers, WebSocket</td>
+        </tr>
+      </table>
+
+      <h3>3.3 Technology Stack Overview</h3>
+      <table>
+        <tr>
+          <th>Component</th>
+          <th>Technology</th>
+          <th>Version</th>
+          <th>Notes</th>
+        </tr>
+        <tr>
+          <td>Frontend Framework</td>
+          <td>React / Next.js</td>
+          <td>18 / 14</td>
+          <td>SSR for SEO on public job pages</td>
+        </tr>
+        <tr>
+          <td>UI Component Library</td>
+          <td>Tailwind CSS + shadcn/ui</td>
+          <td>3.x</td>
+          <td>Customizable, accessible</td>
+        </tr>
+        <tr>
+          <td>Backend Framework</td>
+          <td>Node.js (Express/NestJS)</td>
+          <td>20 LTS</td>
+          <td>TypeScript throughout</td>
+        </tr>
+        <tr>
+          <td>Database</td>
+          <td>PostgreSQL + pgvector</td>
+          <td>15+</td>
+          <td>Full-text search + vector similarity</td>
+        </tr>
+        <tr>
+          <td>Cache &amp; Queue</td>
+          <td>Redis + BullMQ</td>
+          <td>7+</td>
+          <td>Job queues for AI processing</td>
+        </tr>
+        <tr>
+          <td>AI/ML</td>
+          <td>Python / FastAPI / LangChain</td>
+          <td>3.11+</td>
+          <td>Embeddings, RAG, recommendation models</td>
+        </tr>
+        <tr>
+          <td>Vector DB</td>
+          <td>Pinecone / Weaviate / pgvector</td>
+          <td>—</td>
+          <td>Semantic search and similarity queries</td>
+        </tr>
+        <tr>
+          <td>LLM</td>
+          <td>OpenAI GPT-4 / Claude / LLaMA 3</td>
+          <td>—</td>
+          <td>JD generation, match explanations, career assistance</td>
+        </tr>
+        <tr>
+          <td>Object Storage</td>
+          <td>AWS S3 / Azure Blob</td>
+          <td>—</td>
+          <td>Resume and document storage</td>
+        </tr>
+        <tr>
+          <td>Container</td>
+          <td>Docker + Kubernetes</td>
+          <td>24 / 1.28</td>
+          <td>Containerized microservices</td>
+        </tr>
+        <tr>
+          <td>CI/CD</td>
+          <td>GitHub Actions / ArgoCD</td>
+          <td>—</td>
+          <td>Automated testing and deployment</td>
+        </tr>
+        <tr>
+          <td>Monitoring</td>
+          <td>Prometheus + Grafana + ELK + Sentry</td>
+          <td>—</td>
+          <td>Metrics, logs, and error tracking</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ==================== SECTION 4: FUNCTIONAL REQUIREMENTS ==================== -->
+    <div class="section">
+      <h2 class="section-title">Functional Requirements</h2>
+
+      <!-- 4.1 AUTH -->
+      <h3>4.1 Authentication, Authorization &amp; Role Management (FR-AUTH)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AUTH-001</td>
+          <td>
+            Users shall be able to register with email/password, Google OAuth,
+            LinkedIn OAuth, or GitHub OAuth.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Registration completes in &lt; 30s; email verification required for
+            email/password registration.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AUTH-002</td>
+          <td>
+            System shall support role-based access control (RBAC) with roles:
+            <code>job_seeker</code>, <code>employer</code>,
+            <code>recruiter</code>, <code>admin</code>,
+            <code>super_admin</code>.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Each endpoint enforces role permissions; unauthorized access returns
+            403.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AUTH-003</td>
+          <td>
+            Employer accounts shall support sub-accounts (recruiters) under a
+            parent company account with inherited permissions.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Company admin can invite, deactivate, and manage recruiter
+            permissions.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AUTH-004</td>
+          <td>
+            System shall support two-factor authentication (2FA) via TOTP and
+            SMS for all user roles.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Users can enable/disable 2FA from profile settings; enforced for
+            admin roles.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AUTH-005</td>
+          <td>
+            JWT-based session management with access tokens (15 min) and refresh
+            tokens (7 days).
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Token rotation on refresh; server-side revocation list maintained.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AUTH-006</td>
+          <td>
+            Password policy: minimum 12 characters, mix of uppercase, lowercase,
+            number, special character; bcrypt/argon2 hashing.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Password strength validated client-side and server-side; breached
+            password check via HaveIBeenPwned API.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AUTH-007</td>
+          <td>
+            Account lockout after 5 failed login attempts within 15 minutes;
+            unlock via email link or admin action.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Lockout triggers notification email; unlock requires identity
+            verification.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AUTH-008</td>
+          <td>
+            Users shall be able to delete their account (right to erasure); data
+            anonymization for audit logs.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Account deletion completes within 30 days; export option available
+            before deletion.
+          </td>
+        </tr>
+      </table>
+
+      <!-- 4.2 SEEKER PROFILE -->
+      <h3>4.2 Job Seeker Profile Management (FR-SEEK)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEEK-001</td>
+          <td>
+            Job seekers shall maintain a comprehensive profile including:
+            personal info, contact details, headline, summary/bio, years of
+            experience, current location, and remote preference.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Profile completeness score computed; users can see % complete.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEEK-002</td>
+          <td>
+            Job seekers shall manage <strong>skills</strong> with proficiency
+            levels (Beginner, Intermediate, Advanced, Expert) and years of
+            experience per skill.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Skills searchable; auto-suggest from normalized skill taxonomy.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEEK-003</td>
+          <td>
+            Job seekers shall add <strong>education</strong> entries:
+            institution, degree, field of study, start/end dates, GPA
+            (optional), activities.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Multiple education entries supported; date validation enforced.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEEK-004</td>
+          <td>
+            Job seekers shall add <strong>work experience</strong> entries:
+            company, title, location, start/end dates, description,
+            achievements, skills used.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Multiple entries supported; overlap validation optional.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEEK-005</td>
+          <td>
+            Job seekers shall add <strong>certifications</strong> and
+            <strong>licenses</strong> with issuing organization, credential ID,
+            issue date, expiration date, and verification URL.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Expired certifications flagged visually.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEEK-006</td>
+          <td>
+            Job seekers shall upload and manage multiple
+            <strong>resumes</strong> (PDF, DOCX, TXT) up to 10MB each; system
+            parses and extracts structured data.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Resume parsed within 60 seconds; extracted data populates profile
+            for review.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEEK-007</td>
+          <td>
+            Job seekers shall set <strong>job preferences</strong>: desired job
+            titles, industries, locations (or remote), salary range, employment
+            type (full-time, part-time, contract, internship), and availability
+            date.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Preferences used by AI recommendation engine.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEEK-008</td>
+          <td>
+            Job seekers shall set <strong>visibility settings</strong>: public
+            to employers, private, or anonymous (blinded during initial
+            screening).
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Privacy controls honored across all employer views and AI features.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEEK-009</td>
+          <td>
+            Job seekers shall have a
+            <strong>profile completeness meter</strong> that guides them to fill
+            missing sections.
+          </td>
+          <td><span class="priority priority-low">LOW</span></td>
+          <td>Completeness % updates in real-time as user edits profile.</td>
+        </tr>
+      </table>
+
+      <!-- 4.3 EMPLOYER -->
+      <h3>4.3 Employer &amp; Company Profile (FR-EMP)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EMP-001</td>
+          <td>
+            Employers shall create and manage
+            <strong>company profiles</strong> with: company name, logo, website,
+            industry, size, headquarters location, description, culture tags,
+            and social links.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Company profile visible on job listings and company page.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EMP-002</td>
+          <td>
+            Employer accounts shall support
+            <strong>company verification</strong>: email domain verification,
+            business registration document upload, and admin approval workflow.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Unverified companies show "Unverified" badge; cannot post jobs until
+            verified.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EMP-003</td>
+          <td>
+            Company admins shall invite
+            <strong>team members</strong> (recruiters, hiring managers) with
+            role-based permissions: viewer, editor, admin.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Invitation via email; roles enforce action limits (e.g., viewer
+            cannot edit jobs).
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EMP-004</td>
+          <td>
+            Employers shall manage <strong>subscription plans</strong> (Free,
+            Basic, Professional, Enterprise) with different job posting limits,
+            AI feature access, and team size.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Plan limits enforced server-side; upgrade/downgrade flow with
+            proration.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EMP-005</td>
+          <td>
+            Employers shall have a <strong>credits system</strong> for AI
+            features (AI JD generation, AI applicant matching) with usage
+            tracking and top-up.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Credit balance displayed; insufficient credits blocks AI feature
+            usage.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EMP-006</td>
+          <td>
+            Employers shall configure <strong>job approval workflows</strong>:
+            direct publish, manager approval, or compliance review before going
+            live.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Configurable per company; approval chain enforced.</td>
+        </tr>
+      </table>
+
+      <!-- 4.4 JOB -->
+      <h3>4.4 Job Posting &amp; Management (FR-JOB)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-JOB-001</td>
+          <td>
+            Employers shall create job postings with: title, description,
+            requirements, responsibilities, location (or remote), employment
+            type, salary range (optional), skills required, experience level,
+            education level, and application deadline.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>All fields validated; salary range optional but recommended.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-JOB-002</td>
+          <td>
+            Employers shall publish job postings immediately or schedule for
+            future publication.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Scheduled jobs auto-publish at set time; notification sent to
+            employer.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-JOB-003</td>
+          <td>
+            Employers shall edit published job postings with change tracking and
+            version history.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Previous versions accessible; major changes may require re-approval.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-JOB-004</td>
+          <td>
+            Employers shall close job postings manually or automatically upon
+            deadline; closed jobs remain visible for reference but cannot
+            receive new applications.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Auto-close at deadline; manual override available.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-JOB-005</td>
+          <td>
+            Employers shall duplicate existing job postings as templates for new
+            postings.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Duplicate copies all fields; user can edit before publishing.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-JOB-006</td>
+          <td>
+            Employers shall archive old job postings; archived jobs are
+            accessible in a separate tab.
+          </td>
+          <td><span class="priority priority-low">LOW</span></td>
+          <td>Archived jobs retain all application data.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-JOB-007</td>
+          <td>
+            System shall support <strong>job templates</strong> for common roles
+            (Software Engineer, Sales Manager, etc.) that pre-populate fields.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Templates editable; employer-specific templates saveable.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-JOB-008</td>
+          <td>
+            Job postings shall have <strong>application methods</strong>: via
+            platform (default), external URL, or email application.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>External/email application jobs show appropriate CTA.</td>
+        </tr>
+      </table>
+
+      <!-- 4.5 SEARCH -->
+      <h3>4.5 Job Search &amp; Discovery (FR-SRCH)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SRCH-001</td>
+          <td>
+            Job seekers shall search jobs by: keyword, job title, company,
+            location, and full-text description match.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Search results return in &lt; 500ms; relevance-ranked.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SRCH-002</td>
+          <td>
+            Job seekers shall filter search results by: location (city, state,
+            country), remote/hybrid/onsite, employment type, experience level,
+            salary range, industry, company size, and posting date.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Multiple filters combine with AND logic; filters reflected in URL
+            for shareability.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SRCH-003</td>
+          <td>
+            Job seekers shall sort search results by: relevance, newest, oldest,
+            salary (high-to-low), company rating.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Sort changes applied without page reload (AJAX).</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SRCH-004</td>
+          <td>
+            Job search results shall be <strong>paginated</strong> with
+            configurable page size (10, 25, 50, 100 per page).
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Pagination maintains filter/sort state; page numbers visible.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SRCH-005</td>
+          <td>
+            Job seekers shall view <strong>detailed job pages</strong> with full
+            description, company info, application button, save job, share, and
+            related jobs.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Job detail page loads in &lt; 1s; includes schema.org structured
+            data.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SRCH-006</td>
+          <td>
+            Job seekers shall save <strong>search queries</strong> with alerts
+            for matching new jobs.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Saved searches trigger email/digest notifications.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SRCH-007</td>
+          <td>
+            Job seekers shall see <strong>recently viewed jobs</strong> and a
+            personalized job feed based on their activity.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Feed updates in real-time; shows "because you viewed X" context.
+          </td>
+        </tr>
+      </table>
+
+      <!-- 4.6 APPLICATIONS -->
+      <h3>4.6 Applications &amp; Tracking (FR-APP)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-APP-001</td>
+          <td>
+            Job seekers shall apply to jobs with a single click using their
+            profile and selected resume; optional cover letter supported.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Application submitted with confirmation; duplicate application
+            prevented.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-APP-002</td>
+          <td>
+            Job seekers shall <strong>save jobs</strong> for later without
+            applying; saved jobs organized in a dedicated list.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Saved jobs accessible from profile; unsave option available.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-APP-003</td>
+          <td>
+            Job seekers shall track <strong>application status</strong> in
+            real-time: Applied, Under Review, Shortlisted, Interview Scheduled,
+            Offer Extended, Hired, Rejected, Withdrawn.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Status updates trigger notifications; visual status indicator on
+            dashboard.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-APP-004</td>
+          <td>
+            Job seekers shall <strong>withdraw applications</strong> before the
+            employer makes a final decision.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Withdrawal confirmed with modal; employer notified.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-APP-005</td>
+          <td>
+            Job seekers shall see <strong>application history</strong> with
+            filters by status, date range, and job type.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>History paginated; export to CSV available.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-APP-006</td>
+          <td>
+            Job seekers shall receive
+            <strong>interview invitations</strong> with date/time options and
+            accept/decline/reschedule functionality.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Interview details synced to calendar (Google/Apple/Outlook).</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-APP-007</td>
+          <td>
+            Job seekers shall rate their application experience (optional) after
+            final outcome.
+          </td>
+          <td><span class="priority priority-low">LOW</span></td>
+          <td>Rating stored anonymously; feeds into employer reputation.</td>
+        </tr>
+      </table>
+
+      <!-- 4.7 EMPLOYER APPLICANT MANAGEMENT -->
+      <h3>4.7 Employer Applicant Management (FR-EAP)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EAP-001</td>
+          <td>
+            Employers shall view all applications per job posting with applicant
+            details, resume preview, AI match score, and application date.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Applicant list loads in &lt; 2s for 100+ applications; sortable by
+            score/date.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EAP-002</td>
+          <td>
+            Employers shall <strong>shortlist</strong> applicants into a
+            separate pipeline stage with notes and tags.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Shortlisted applicants move to shortlist view; notification sent to
+            applicant.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EAP-003</td>
+          <td>
+            Employers shall <strong>reject</strong> applicants with optional
+            rejection reason templates (e.g., "Not enough experience").
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Rejection notification sent to applicant; reason stored for
+            analytics.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EAP-004</td>
+          <td>
+            Employers shall <strong>schedule interviews</strong> with proposed
+            time slots; applicants can accept, decline, or propose alternative
+            times.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Interview confirmation with calendar invite; status syncs back to
+            application.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EAP-005</td>
+          <td>
+            Employers shall <strong>mark candidates as hired</strong> with offer
+            details (compensation, start date, position).
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Hired status triggers onboarding checklist; analytics updated.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EAP-006</td>
+          <td>
+            Employers shall add <strong>private notes</strong> and
+            <strong>ratings</strong> (1-5 stars) on each applicant visible only
+            to team members.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Notes timestamped with author; edit history available.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EAP-007</td>
+          <td>
+            Employers shall <strong>bulk action</strong> applicants: bulk
+            shortlist, bulk reject, bulk send email.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Bulk actions processed asynchronously with progress indicator.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-EAP-008</td>
+          <td>
+            Employers shall use <strong>Kanban-style pipeline view</strong> to
+            drag-and-drop applicants between stages.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Drag-and-drop updates status in real-time; undo available.</td>
+        </tr>
+      </table>
+
+      <!-- 4.8 ADMIN -->
+      <h3>4.8 Admin Dashboard &amp; Reporting (FR-ADM)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-ADM-001</td>
+          <td>
+            Administrators shall have a <strong>dashboard</strong> with
+            real-time KPIs: active jobs, new applications, new users, approval
+            queue, AI usage, and platform health.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>KPIs refresh every 30 seconds; drill-down into each metric.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-ADM-002</td>
+          <td>
+            Administrators shall <strong>moderate job postings</strong> flagged
+            by users or AI for policy violations (discrimination, spam,
+            misleading content).
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Approval/rejection workflow with reason codes; audit trail.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-ADM-003</td>
+          <td>
+            Administrators shall <strong>moderate user accounts</strong>:
+            suspend, warn, ban, or reinstate users with documented reasons.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            All moderation actions logged; suspended users prevented from login.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-ADM-004</td>
+          <td>
+            Administrators shall view <strong>analytics reports</strong>:
+            application conversion rates, time-to-hire, job posting performance,
+            user engagement, AI feature adoption.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Reports exportable as PDF/CSV; date range selectable.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-ADM-005</td>
+          <td>
+            Administrators shall manage <strong>system configuration</strong>:
+            feature flags, AI model selection, email templates, and notification
+            settings.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Changes apply without full deployment where supported.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-ADM-006</td>
+          <td>
+            Administrators shall view <strong>audit logs</strong> for all
+            critical actions: user role changes, content moderation, system
+            config changes, and bulk operations.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Logs searchable by user, action type, and date range.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-ADM-007</td>
+          <td>
+            Administrators shall manage <strong>skill taxonomy</strong> and
+            <strong>job title normalization</strong> to maintain data quality.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            CRUD operations on taxonomy; changes propagate to suggestions.
+          </td>
+        </tr>
+      </table>
+
+      <!-- 4.9 AI FEATURES -->
+      <h3>4.9 AI-Powered Features (FR-AI)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-001</td>
+          <td>
+            System shall generate
+            <strong>personalized job recommendations</strong> for job seekers
+            based on their profile, skills, experience, preferences, and
+            application history.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Recommendations updated at least daily; relevance score ≥ 0.7 for
+            top 10 results.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-002</td>
+          <td>
+            System shall compute a <strong>job-match score</strong> (0-100) for
+            each job-application pair based on skills overlap, experience match,
+            location compatibility, salary alignment, and education fit.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Score displayed on job detail page (for seekers) and application
+            list (for employers).
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-003</td>
+          <td>
+            System shall provide <strong>AI match explanations</strong>:
+            natural-language summary of why a job matches (or doesn't match) a
+            seeker's profile, citing specific skills and experiences.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Explanation generated in &lt; 3s; cites at least 3 matching factors.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-004</td>
+          <td>
+            System shall perform <strong>resume analysis</strong>: extract
+            skills, detect gaps, suggest improvements, and benchmark against job
+            requirements.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Analysis includes: skills found, missing skills, formatting
+            suggestions, ATS compatibility score.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-005</td>
+          <td>
+            System shall generate <strong>job descriptions</strong> from
+            structured inputs (role, requirements, company context) using LLM
+            with customizable tone and length.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Generated JD editable; includes diversity-friendly language check.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-006</td>
+          <td>
+            System shall perform <strong>AI applicant matching</strong> for
+            employers: rank applicants by match score and provide AI-generated
+            summaries of candidate fit.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Ranking delivered in &lt; 5s for up to 500 applicants; summaries
+            generated per applicant.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-007</td>
+          <td>
+            System shall offer <strong>AI career assistance</strong> for job
+            seekers: resume rewrite suggestions, cover letter generation,
+            interview tips based on job posting, and career path insights.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Generated content is editable; user can regenerate with different
+            parameters.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-008</td>
+          <td>
+            System shall provide <strong>salary insights</strong> using AI
+            analysis of similar job postings and market data (if available).
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Salary range displayed with confidence interval; source attribution
+            shown.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-009</td>
+          <td>
+            All AI features shall have
+            <strong>human-in-the-loop</strong> capability: users can review,
+            edit, or reject AI-generated content before using it.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>No AI content is auto-applied without user confirmation.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-AI-010</td>
+          <td>
+            AI models shall be <strong>versioned</strong> with rollback
+            capability; model performance metrics tracked per version.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Model version visible in admin dashboard; rollback within 10
+            minutes.
+          </td>
+        </tr>
+      </table>
+
+      <!-- 4.10 NOTIFICATIONS -->
+      <h3>4.10 Notifications &amp; Communication (FR-NOT)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-NOT-001</td>
+          <td>
+            System shall deliver notifications via: <strong>email</strong>,
+            <strong>in-app</strong>, <strong>SMS</strong> (for critical events),
+            and <strong>push</strong> (if PWA installed).
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Users can choose delivery channels per notification type.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-NOT-002</td>
+          <td>
+            Notification types shall include: application submitted, application
+            status change, interview invitation, job recommendation digest,
+            saved search alert, employer actions, and system announcements.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>All notification types configurable in user settings.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-NOT-003</td>
+          <td>
+            Users shall have <strong>notification preferences</strong>:
+            enable/disable specific types, set quiet hours, choose frequency
+            (real-time, hourly digest, daily digest, weekly digest).
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Preferences persist across sessions; applied globally.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-NOT-004</td>
+          <td>
+            In-app notification center shall support: read/unread markers, mark
+            all as read, delete, archive, and notification history.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Unread count badge visible; notifications searchable.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-NOT-005</td>
+          <td>
+            System shall send <strong>transactional emails</strong>: welcome
+            email, email verification, password reset, application confirmation,
+            interview scheduling, and account notifications.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Email deliverability ≥ 97%; templates branded and accessible.</td>
+        </tr>
+      </table>
+
+      <!-- 4.11 SEMANTIC -->
+      <h3>4.11 Semantic Search &amp; Future Capabilities (FR-SEM)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEM-001</td>
+          <td>
+            System shall support <strong>semantic job search</strong>:
+            natural-language queries (e.g., "remote Python developer jobs with
+            flexible hours") that understand intent beyond keyword matching.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Semantic search returns relevant results even without exact keyword
+            matches.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEM-002</td>
+          <td>
+            System shall generate and store <strong>embeddings</strong> for: job
+            postings, resumes, user profiles, and skills.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Embeddings auto-generated on content creation/update; versioned.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEM-003</td>
+          <td>
+            System shall support <strong>vector similarity search</strong> for:
+            similar jobs, similar candidates, and skill-based matching.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Vector search latency &lt; 200ms at p95 for 10M+ vectors.</td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEM-004</td>
+          <td>
+            System shall support
+            <strong>Retrieval-Augmented Generation (RAG)</strong> for:
+            AI-powered Q&amp;A about job postings, company research assistance,
+            and career path recommendations.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            RAG answers cite sources; hallucination rate &lt; 5% in test suite.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEM-005</td>
+          <td>
+            System shall support <strong>hybrid search</strong>: combining
+            full-text search (BM25) with vector similarity for optimal ranking.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Hybrid ranking outperforms either method alone on relevance metrics.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">FR-SEM-006</td>
+          <td>
+            System shall provide <strong>semantic deduplication</strong> of
+            similar job postings to reduce noise in search results.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Duplicate clusters identified with confidence score; admin review
+            UI.
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ==================== SECTION 5: NON-FUNCTIONAL REQUIREMENTS ==================== -->
+    <div class="section">
+      <h2 class="section-title">Non-Functional Requirements</h2>
+
+      <h3>5.1 Security &amp; Privacy (NFR-SEC)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-SEC-001</td>
+          <td>
+            All data in transit must be encrypted using
+            <strong>TLS 1.3</strong>; HSTS header enforced with
+            <code>max-age=31536000; includeSubDomains</code>.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>SSL Labs rating A+; no mixed content warnings.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-SEC-002</td>
+          <td>
+            All data at rest must be encrypted using
+            <strong>AES-256</strong> for database storage and
+            <strong>S3 server-side encryption</strong> for object storage.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Encryption verified via compliance audit; key rotation every 90
+            days.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-SEC-003</td>
+          <td>
+            Implement <strong>OWASP Top 10</strong> controls: SQL injection
+            prevention (parameterized queries), XSS protection (CSP, output
+            encoding), CSRF tokens, secure headers, and rate limiting.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Penetration test passes with no critical/high findings.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-SEC-004</td>
+          <td>
+            PII data (email, phone, address) must be
+            <strong>pseudonymized</strong> in logs and analytics; sensitive data
+            (SSN, DOB) must never be collected unless legally required.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Automated data scanning confirms no PII in logs.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-SEC-005</td>
+          <td>
+            Support <strong>GDPR</strong> compliance: data subject access
+            requests (DSAR), right to erasure, data portability, and consent
+            management.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>DSAR response within 30 days; automated data export/delete.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-SEC-006</td>
+          <td>
+            Implement <strong>role-based access control (RBAC)</strong> with
+            principle of least privilege; all admin actions require MFA.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Access matrix documented; quarterly access reviews.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-SEC-007</td>
+          <td>
+            Session management: secure HttpOnly cookies, SameSite=Lax, session
+            timeout after 30 minutes of inactivity (configurable per role).
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Sessions invalidated server-side on logout and password change.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-SEC-008</td>
+          <td>
+            All user input must be validated server-side using strict
+            allow-lists; file uploads scanned for malware using ClamAV or
+            equivalent.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Invalid input rejected with 400; infected files quarantined.</td>
+        </tr>
+      </table>
+
+      <h3>5.2 Performance &amp; Scalability (NFR-PERF)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-PERF-001</td>
+          <td>
+            API response time: p95 &lt; 300ms for standard CRUD endpoints; p95
+            &lt; 1s for search and AI-assisted endpoints; p95 &lt; 3s for AI
+            generation endpoints.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Performance tested at 10x expected load; results meet SLAs.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-PERF-002</td>
+          <td>
+            System must support <strong>100,000 concurrent users</strong> with
+            horizontal scaling; auto-scaling triggers at 70% CPU utilization.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Load test validates 100K concurrent sessions without degradation.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-PERF-003</td>
+          <td>
+            Database query performance: all queries must use appropriate
+            indexes; slow query threshold &lt; 100ms.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Query execution plan reviewed; no full table scans on large tables.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-PERF-004</td>
+          <td>
+            Cache hit ratio ≥ 85% for frequently accessed data (job listings,
+            user profiles, search results).
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Redis cache monitoring confirms hit ratio targets.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-PERF-005</td>
+          <td>
+            AI embedding generation throughput: ≥ 50 embeddings/second per
+            worker node; batch processing for backfills.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Backfill of 1M items completes within 4 hours with 10 workers.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-PERF-006</td>
+          <td>
+            Frontend bundle size &lt; 300KB (gzipped) for initial load; lazy
+            loading for non-critical routes.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Lighthouse performance score ≥ 90 for mobile.</td>
+        </tr>
+      </table>
+
+      <h3>5.3 Reliability &amp; Availability (NFR-REL)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-REL-001</td>
+          <td>
+            System availability: <strong>99.9% uptime</strong> (excluding
+            planned maintenance); monthly SLA report.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Availability monitored via external probes; incident response in
+            &lt; 15 min.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-REL-002</td>
+          <td>
+            Implement <strong>database replication</strong> (primary-replica)
+            with automatic failover; RTO &lt; 5 minutes, RPO &lt; 1 minute.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Failover tested quarterly; recovery time verified.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-REL-003</td>
+          <td>
+            Implement <strong>backup strategy</strong>: automated daily full
+            backups, hourly incremental backups, and point-in-time recovery for
+            PostgreSQL.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Backup restoration tested monthly; RPO &lt; 15 minutes.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-REL-004</td>
+          <td>
+            Implement <strong>graceful degradation</strong>: if AI services are
+            unavailable, core job search and application features continue to
+            work using rule-based fallback.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>AI service outage doesn't affect core functionality.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-REL-005</td>
+          <td>
+            Implement <strong>circuit breakers</strong> and
+            <strong>retry policies</strong> for all external API dependencies.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            External API failures logged; circuit breakers prevent cascading
+            failures.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-REL-006</td>
+          <td>
+            Error tracking and <strong>distributed tracing</strong> across all
+            microservices for root-cause analysis.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            Trace ID propagated through all service calls; visualized in
+            dashboard.
+          </td>
+        </tr>
+      </table>
+
+      <h3>5.4 Auditability &amp; Compliance (NFR-AUD)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AUD-001</td>
+          <td>
+            All security-relevant events must be logged with: timestamp, user
+            ID, IP address, action, resource, before/after values.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Audit logs stored in append-only storage; tamper-evident.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AUD-002</td>
+          <td>
+            Audit log retention: minimum 1 year (configurable up to 7 years for
+            regulated industries).
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Log rotation and archival automated; searchable via ELK.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AUD-003</td>
+          <td>
+            Support <strong>SOX compliance</strong> for public company
+            requirements: financial reporting integrity, access controls, and
+            change management.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>SOX-relevant controls documented and tested quarterly.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AUD-004</td>
+          <td>
+            Implement <strong>change management</strong> approval workflow for
+            all production deployments.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>
+            All production changes require PR approval and deployment log.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AUD-005</td>
+          <td>
+            All AI decisions (recommendations, match scores, generated content)
+            must be <strong>explainable</strong> and auditable with model
+            version, input data, and confidence score.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>AI decision log with full context available for review.</td>
+        </tr>
+      </table>
+
+      <h3>5.5 AI Safety &amp; Ethics (NFR-AI)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AI-001</td>
+          <td>
+            AI-generated content must not contain
+            <strong>discriminatory language</strong> based on race, gender, age,
+            religion, disability, or other protected characteristics.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Automated bias detection and human review for flagged content.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AI-002</td>
+          <td>
+            AI match scores must be <strong>fair and transparent</strong>: no
+            hidden demographic weighting; score breakdown available to users.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Model fairness evaluated quarterly; disparate impact ratio within
+            legal limits.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AI-003</td>
+          <td>
+            AI models must be evaluated for
+            <strong>hallucination rate</strong> (factual accuracy) on a held-out
+            test set; hallucination rate &lt; 5% for RAG responses.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Test suite with 500+ questions; automated evaluation pipeline.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AI-004</td>
+          <td>
+            Users must be
+            <strong>informed when interacting with AI</strong> ("AI-generated
+            content" label); users can provide feedback on AI quality.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>AI content labeled; feedback collected via thumbs up/down.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AI-005</td>
+          <td>
+            AI models must be <strong>monitored for drift</strong>: performance
+            metrics tracked over time; alert when performance degrades &gt; 10%.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Automated drift detection with alerting.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-AI-006</td>
+          <td>
+            AI feature usage must not <strong>exceed cost limits</strong>:
+            per-user, per-company, and global rate limits and budget caps.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Cost dashboards; alerting at 80% of budget threshold.</td>
+        </tr>
+      </table>
+
+      <h3>5.6 Usability &amp; Accessibility (NFR-USA)</h3>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Requirement Description</th>
+          <th>Priority</th>
+          <th>Acceptance Criteria</th>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-USA-001</td>
+          <td>
+            Interface must comply with <strong>WCAG 2.1 Level AA</strong>:
+            keyboard navigation, screen reader support, color contrast ≥ 4.5:1,
+            and alt text for images.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Accessibility audit passes; automated testing in CI pipeline.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-USA-002</td>
+          <td>
+            Core user flows must be <strong>mobile-responsive</strong>: job
+            search, application, and profile management fully functional on
+            mobile devices.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>
+            Tested on iOS Safari, Android Chrome, and responsive breakpoints.
+          </td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-USA-003</td>
+          <td>
+            First-time user onboarding: guided setup with
+            <strong>profile completion wizard</strong>; user can skip and
+            complete later.
+          </td>
+          <td><span class="priority priority-medium">MEDIUM</span></td>
+          <td>Onboarding completion rate ≥ 60% within first session.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-USA-004</td>
+          <td>
+            Interface language: English (US); all error messages must be
+            <strong>human-readable</strong> with actionable guidance.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>No raw stack traces in UI; error messages reviewed by UX.</td>
+        </tr>
+        <tr>
+          <td class="req-id">NFR-USA-005</td>
+          <td>
+            Load time: initial page load &lt; 2s on 4G connection; subsequent
+            route transitions &lt; 500ms.
+          </td>
+          <td><span class="priority priority-high">HIGH</span></td>
+          <td>Lighthouse performance score ≥ 85 for mobile.</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ==================== SECTION 6: BUSINESS RULES ==================== -->
+    <div class="section">
+      <h2 class="section-title">Business Rules</h2>
+      <p>
+        The following business rules govern system behavior and must be enforced
+        consistently across all modules:
+      </p>
+      <table>
+        <tr>
+          <th>Rule ID</th>
+          <th>Business Rule Description</th>
+          <th>Enforcement</th>
+        </tr>
+        <tr>
+          <td><code>BR-001</code></td>
+          <td>A job seeker cannot apply to the same job more than once.</td>
+          <td>Server-side validation; duplicate application rejected.</td>
+        </tr>
+        <tr>
+          <td><code>BR-002</code></td>
+          <td>Only verified companies can publish job postings.</td>
+          <td>Verification status checked on job creation.</td>
+        </tr>
+        <tr>
+          <td><code>BR-003</code></td>
+          <td>
+            A job posting automatically expires on its deadline date at 23:59
+            (employer timezone).
+          </td>
+          <td>Scheduled job auto-close; notification sent.</td>
+        </tr>
+        <tr>
+          <td><code>BR-004</code></td>
+          <td>
+            Job seekers cannot see employer contact information until the
+            employer initiates contact (anti-harassment protection).
+          </td>
+          <td>Data masked in API responses unless employer approves.</td>
+        </tr>
+        <tr>
+          <td><code>BR-005</code></td>
+          <td>
+            Employers cannot see job seeker's personal contact details until the
+            job seeker applies to a job (privacy rule).
+          </td>
+          <td>Blinded profile view before application.</td>
+        </tr>
+        <tr>
+          <td><code>BR-006</code></td>
+          <td>
+            Free-tier employers have a maximum of 3 active job postings at any
+            time.
+          </td>
+          <td>Job creation blocked when limit reached; upgrade prompt.</td>
+        </tr>
+        <tr>
+          <td><code>BR-007</code></td>
+          <td>
+            AI match scores are advisory only; employers make final hiring
+            decisions.
+          </td>
+          <td>
+            UI disclaimer; no automated rejection based solely on AI score.
+          </td>
+        </tr>
+        <tr>
+          <td><code>BR-008</code></td>
+          <td>
+            Job postings must comply with EEO regulations; no discriminatory
+            language in job descriptions.
+          </td>
+          <td>AI content check flags potential violations; admin review.</td>
+        </tr>
+        <tr>
+          <td><code>BR-009</code></td>
+          <td>
+            Users under 18 years of age cannot register (COPPA compliance).
+          </td>
+          <td>Age verification at registration; minimum age enforced.</td>
+        </tr>
+        <tr>
+          <td><code>BR-010</code></td>
+          <td>
+            Salary information if provided must be within legal minimum wage
+            requirements for the job location.
+          </td>
+          <td>Validation against regional wage data where available.</td>
+        </tr>
+        <tr>
+          <td><code>BR-011</code></td>
+          <td>
+            Interview invitations require at least 48 hours notice unless the
+            applicant opts in for short-notice interviews.
+          </td>
+          <td>Scheduling system validates time windows.</td>
+        </tr>
+        <tr>
+          <td><code>BR-012</code></td>
+          <td>
+            Data retention: inactive user accounts (no login for 24 months) are
+            automatically flagged for review and potential anonymization.
+          </td>
+          <td>Scheduled job checks for inactive accounts.</td>
+        </tr>
+        <tr>
+          <td><code>BR-013</code></td>
+          <td>
+            Employers must respond to applications within 30 days; otherwise,
+            applications are auto-marked as "Expired" with notification to both
+            parties.
+          </td>
+          <td>Automated cron job checks for stale applications.</td>
+        </tr>
+        <tr>
+          <td><code>BR-014</code></td>
+          <td>
+            Job seekers can only withdraw applications that are not in "Hired"
+            or "Rejected" status.
+          </td>
+          <td>State machine validation on withdrawal action.</td>
+        </tr>
+        <tr>
+          <td><code>BR-015</code></td>
+          <td>
+            AI-generated job descriptions must include a "created with AI
+            assistance" disclosure.
+          </td>
+          <td>System automatically adds disclosure footer.</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ==================== SECTION 7: USE CASES & WORKFLOWS ==================== -->
+    <div class="section">
+      <h2 class="section-title">Use Cases &amp; Workflows</h2>
+
+      <h3>7.1 Primary Use Cases</h3>
+
+      <div class="use-case">
+        <h4>UC-001: Job Seeker Registration &amp; Profile Creation</h4>
+        <div class="use-case-grid">
+          <span class="label">Actor:</span><span>Job Seeker</span>
+          <span class="label">Trigger:</span
+          ><span>User clicks "Sign Up" on landing page</span>
+          <span class="label">Preconditions:</span><span>None</span>
+          <span class="label">Postconditions:</span
+          ><span>User has verified account with complete profile</span>
+          <span class="label">Priority:</span
+          ><span class="priority priority-high">HIGH</span>
+        </div>
+        <p><strong>Main Flow:</strong></p>
+        <ol>
+          <li>
+            User selects "Job Seeker" role and enters email/password or uses
+            Google/LinkedIn OAuth.
+          </li>
+          <li>
+            System sends email verification link (for email/password
+            registration).
+          </li>
+          <li>
+            User clicks verification link; system confirms account activation.
+          </li>
+          <li>
+            System presents onboarding wizard: personal info, skills,
+            experience, education.
+          </li>
+          <li>
+            User uploads resume (optional); system parses and pre-fills profile
+            fields.
+          </li>
+          <li>
+            User reviews and confirms profile; system saves and redirects to
+            dashboard.
+          </li>
+        </ol>
+        <p>
+          <strong>Alternative Flow:</strong> User skips onboarding; system shows
+          profile completeness prompt later.
+        </p>
+      </div>
+
+      <div class="use-case">
+        <h4>UC-002: Employer Job Posting Creation &amp; Publishing</h4>
+        <div class="use-case-grid">
+          <span class="label">Actor:</span><span>Employer/Recruiter</span>
+          <span class="label">Trigger:</span
+          ><span>User clicks "Post a Job" from dashboard</span>
+          <span class="label">Preconditions:</span
+          ><span>Employer is verified; has available job posting credits</span>
+          <span class="label">Postconditions:</span
+          ><span>Job posting is live and visible to job seekers</span>
+          <span class="label">Priority:</span
+          ><span class="priority priority-high">HIGH</span>
+        </div>
+        <p><strong>Main Flow:</strong></p>
+        <ol>
+          <li>
+            Employer fills job posting form: title, description, requirements,
+            location, salary, skills.
+          </li>
+          <li>
+            Employer optionally uses AI JD Generator to draft description from
+            bullet points.
+          </li>
+          <li>Employer reviews and publishes job (or schedules for later).</li>
+          <li>System validates content for compliance and quality.</li>
+          <li>
+            System generates embeddings for semantic search and indexes job.
+          </li>
+          <li>
+            System notifies matching job seekers (via saved search alerts and
+            recommendation engine).
+          </li>
+        </ol>
+        <p>
+          <strong>Alternative Flow:</strong> If employer lacks credits, system
+          prompts subscription upgrade.
+        </p>
+      </div>
+
+      <div class="use-case">
+        <h4>UC-003: Job Seeker Application &amp; Tracking</h4>
+        <div class="use-case-grid">
+          <span class="label">Actor:</span><span>Job Seeker</span>
+          <span class="label">Trigger:</span
+          ><span>User clicks "Apply" on job detail page</span>
+          <span class="label">Preconditions:</span
+          ><span>User is logged in; has a resume or complete profile</span>
+          <span class="label">Postconditions:</span
+          ><span>Application is submitted and visible to employer</span>
+          <span class="label">Priority:</span
+          ><span class="priority priority-high">HIGH</span>
+        </div>
+        <p><strong>Main Flow:</strong></p>
+        <ol>
+          <li>User clicks "Apply" on a job posting.</li>
+          <li>
+            System shows application modal: select resume, optional cover
+            letter.
+          </li>
+          <li>
+            User confirms application; system validates no duplicate
+            application.
+          </li>
+          <li>
+            System creates application record with status "Applied" and sends
+            confirmation.
+          </li>
+          <li>
+            Employer is notified; application appears in employer dashboard.
+          </li>
+          <li>
+            User tracks status changes on their dashboard; receives
+            notifications on updates.
+          </li>
+        </ol>
+        <p>
+          <strong>Alternative Flow:</strong> User without resume can apply using
+          profile-only; system prompts resume upload.
+        </p>
+      </div>
+
+      <div class="use-case">
+        <h4>
+          UC-004: Employer Applicant Shortlisting &amp; Interview Scheduling
+        </h4>
+        <div class="use-case-grid">
+          <span class="label">Actor:</span><span>Employer/Recruiter</span>
+          <span class="label">Trigger:</span
+          ><span>Employer opens applicant list for a job</span>
+          <span class="label">Preconditions:</span
+          ><span>Applications exist for the job</span>
+          <span class="label">Postconditions:</span
+          ><span>Applicant shortlisted; interview scheduled</span>
+          <span class="label">Priority:</span
+          ><span class="priority priority-high">HIGH</span>
+        </div>
+        <p><strong>Main Flow:</strong></p>
+        <ol>
+          <li>Employer reviews applications sorted by AI match score.</li>
+          <li>Employer shortlists promising candidates; adds private notes.</li>
+          <li>
+            Employer proposes interview time slots to shortlisted candidates.
+          </li>
+          <li>
+            Candidate receives notification; accepts, declines, or proposes
+            alternative.
+          </li>
+          <li>System confirms interview; adds to calendar; sends reminders.</li>
+          <li>
+            Employer updates status after interview (hired, rejected, or further
+            rounds).
+          </li>
+        </ol>
+      </div>
+
+      <div class="use-case">
+        <h4>UC-005: AI Job Recommendation Generation</h4>
+        <div class="use-case-grid">
+          <span class="label">Actor:</span><span>System (AI Engine)</span>
+          <span class="label">Trigger:</span
+          ><span>Scheduled job or user interaction</span>
+          <span class="label">Preconditions:</span
+          ><span>User has sufficient profile data for recommendation</span>
+          <span class="label">Postconditions:</span
+          ><span>User sees personalized job recommendations</span>
+          <span class="label">Priority:</span
+          ><span class="priority priority-high">HIGH</span>
+        </div>
+        <p><strong>Main Flow:</strong></p>
+        <ol>
+          <li>
+            System aggregates user profile, skills, preferences, and application
+            history.
+          </li>
+          <li>System generates user embedding from profile data.</li>
+          <li>
+            System performs vector similarity search against active job
+            embeddings.
+          </li>
+          <li>
+            System applies filtering (location, salary, employment type) and
+            re-ranking.
+          </li>
+          <li>
+            System generates natural-language explanations for top matches.
+          </li>
+          <li>
+            Recommendations presented on user dashboard with match scores and
+            explanations.
+          </li>
+        </ol>
+      </div>
+
+      <div class="use-case">
+        <h4>UC-006: Admin Job Moderation &amp; Platform Oversight</h4>
+        <div class="use-case-grid">
+          <span class="label">Actor:</span><span>Administrator</span>
+          <span class="label">Trigger:</span
+          ><span>Job flagged by AI or user report</span>
+          <span class="label">Preconditions:</span
+          ><span>Flagged job exists in moderation queue</span>
+          <span class="label">Postconditions:</span
+          ><span>Job approved, rejected, or sent back for revision</span>
+          <span class="label">Priority:</span
+          ><span class="priority priority-high">HIGH</span>
+        </div>
+        <p><strong>Main Flow:</strong></p>
+        <ol>
+          <li>
+            Admin opens moderation dashboard; sees flagged jobs with AI-detected
+            issues.
+          </li>
+          <li>Admin reviews job content, AI analysis, and user reports.</li>
+          <li>
+            Admin takes action: approve, reject (with reason), or request
+            revision.
+          </li>
+          <li>System notifies employer of moderation decision.</li>
+          <li>System logs all moderation actions for audit.</li>
+        </ol>
+      </div>
+
+      <h3>7.2 Key Workflows</h3>
+
+      <div class="workflow">
+        <h4>WF-001: End-to-End Recruitment Workflow</h4>
+        <ol>
+          <li>
+            <strong>Employer creates job posting</strong>
+            <span class="flow-arrow">→</span> AI JD generation (optional)
+          </li>
+          <li>
+            <strong>Employer publishes job</strong>
+            <span class="flow-arrow">→</span> Job indexed for search
+          </li>
+          <li>
+            <strong>Job seeker searches/finds job</strong>
+            <span class="flow-arrow">→</span> AI recommendations
+          </li>
+          <li>
+            <strong>Job seeker applies</strong>
+            <span class="flow-arrow">→</span> Application record created
+          </li>
+          <li>
+            <strong>Employer reviews applicants</strong>
+            <span class="flow-arrow">→</span> AI ranking &amp; match scores
+          </li>
+          <li>
+            <strong>Employer shortlists candidate</strong>
+            <span class="flow-arrow">→</span> Notification to candidate
+          </li>
+          <li>
+            <strong>Interview scheduled</strong>
+            <span class="flow-arrow">→</span> Calendar sync
+          </li>
+          <li>
+            <strong>Employer makes hiring decision</strong>
+            <span class="flow-arrow">→</span> Status updated
+          </li>
+          <li>
+            <strong>Analytics recorded</strong>
+            <span class="flow-arrow">→</span> Time-to-hire, conversion rates
+          </li>
+        </ol>
+      </div>
+
+      <div class="workflow">
+        <h4>WF-002: AI Recommendation Pipeline</h4>
+        <ol>
+          <li>
+            <strong>Data Collection</strong>
+            <span class="flow-arrow">→</span> Profile, skills, preferences,
+            history
+          </li>
+          <li>
+            <strong>Embedding Generation</strong>
+            <span class="flow-arrow">→</span> User and job embeddings
+          </li>
+          <li>
+            <strong>Vector Search</strong>
+            <span class="flow-arrow">→</span> Similarity computation
+          </li>
+          <li>
+            <strong>Filtering</strong>
+            <span class="flow-arrow">→</span> Location, salary, type constraints
+          </li>
+          <li>
+            <strong>Re-ranking</strong> <span class="flow-arrow">→</span> Hybrid
+            scoring (BM25 + vector)
+          </li>
+          <li>
+            <strong>Explanation Generation</strong>
+            <span class="flow-arrow">→</span> Natural-language rationale
+          </li>
+          <li>
+            <strong>Presentation</strong> <span class="flow-arrow">→</span> UI
+            display with scores
+          </li>
+        </ol>
+      </div>
+
+      <div class="workflow">
+        <h4>WF-003: Application State Machine</h4>
+        <p>
+          <code>Applied</code> → <code>Under Review</code> →
+          <code>Shortlisted</code> → <code>Interview Scheduled</code> →
+          <code>Offer Extended</code> → <code>Hired</code>
+        </p>
+        <p>
+          At any stage (before Hired): → <code>Rejected</code> or
+          <code>Withdrawn</code>
+        </p>
+        <p>
+          Allowed transitions enforced by state machine with validation on all
+          state changes.
+        </p>
+      </div>
+    </div>
+
+    <!-- ==================== SECTION 8: DATA REQUIREMENTS ==================== -->
+    <div class="section">
+      <h2 class="section-title">Data Requirements</h2>
+
+      <h3>8.1 Core Data Entities</h3>
+      <table>
+        <tr>
+          <th>Entity</th>
+          <th>Key Fields</th>
+          <th>Relationships</th>
+          <th>Estimated Size</th>
+        </tr>
+        <tr>
+          <td><code>User</code></td>
+          <td>
+            id, email, password_hash, role, status, verified_at, created_at,
+            updated_at, last_login
+          </td>
+          <td>has_one Profile (polymorphic)</td>
+          <td>1M+ records</td>
+        </tr>
+        <tr>
+          <td><code>JobSeekerProfile</code></td>
+          <td>
+            id, user_id, headline, summary, years_experience, location,
+            remote_preference, visibility, completeness_score
+          </td>
+          <td>
+            belongs_to User; has_many Skills, Educations, Experiences,
+            Certifications, Resumes
+          </td>
+          <td>600K+ records</td>
+        </tr>
+        <tr>
+          <td><code>EmployerProfile</code></td>
+          <td>id, user_id, company_id, title, department, permissions</td>
+          <td>belongs_to User, Company</td>
+          <td>250K+ records</td>
+        </tr>
+        <tr>
+          <td><code>Company</code></td>
+          <td>
+            id, name, logo_url, website, industry, size, headquarters,
+            description, verification_status, subscription_plan
+          </td>
+          <td>has_many EmployerProfiles, Jobs</td>
+          <td>100K+ records</td>
+        </tr>
+        <tr>
+          <td><code>Job</code></td>
+          <td>
+            id, company_id, title, description, requirements, location,
+            employment_type, salary_min, salary_max, experience_level,
+            education_level, status, published_at, deadline, view_count
+          </td>
+          <td>belongs_to Company; has_many Applications; has_many JobSkills</td>
+          <td>500K+ active/year</td>
+        </tr>
+        <tr>
+          <td><code>JobSkill</code></td>
+          <td>id, job_id, skill_id, importance_level (required/preferred)</td>
+          <td>belongs_to Job, Skill</td>
+          <td>5M+ records</td>
+        </tr>
+        <tr>
+          <td><code>Skill</code></td>
+          <td>id, name, category, normalized_name</td>
+          <td>has_many JobSkills, UserSkills</td>
+          <td>50K+ records</td>
+        </tr>
+        <tr>
+          <td><code>Application</code></td>
+          <td>
+            id, job_id, user_id, resume_id, cover_letter, status,
+            ai_match_score, applied_at, updated_at
+          </td>
+          <td>belongs_to Job, User, Resume</td>
+          <td>2M+ applications/year</td>
+        </tr>
+        <tr>
+          <td><code>Resume</code></td>
+          <td>
+            id, user_id, file_url, parsed_text, extracted_skills, ats_score,
+            uploaded_at
+          </td>
+          <td>belongs_to User</td>
+          <td>800K+ records</td>
+        </tr>
+        <tr>
+          <td><code>SavedJob</code></td>
+          <td>id, user_id, job_id, saved_at, notes</td>
+          <td>belongs_to User, Job</td>
+          <td>1M+ records</td>
+        </tr>
+        <tr>
+          <td><code>Notification</code></td>
+          <td>
+            id, user_id, type, title, body, read_at, delivered_via, created_at
+          </td>
+          <td>belongs_to User</td>
+          <td>10M+ records</td>
+        </tr>
+        <tr>
+          <td><code>AuditLog</code></td>
+          <td>
+            id, user_id, action, resource_type, resource_id, before_data,
+            after_data, ip_address, created_at
+          </td>
+          <td>belongs_to User</td>
+          <td>50M+ records/year</td>
+        </tr>
+        <tr>
+          <td><code>Embedding</code></td>
+          <td>id, entity_type, entity_id, vector, model_version, created_at</td>
+          <td>polymorphic association</td>
+          <td>5M+ vectors</td>
+        </tr>
+        <tr>
+          <td><code>SearchQuery</code></td>
+          <td>id, user_id, query_text, filters, saved_as_alert, created_at</td>
+          <td>belongs_to User</td>
+          <td>5M+ records/year</td>
+        </tr>
+      </table>
+
+      <h3>8.2 Data Retention Policies</h3>
+      <table>
+        <tr>
+          <th>Data Type</th>
+          <th>Retention Period</th>
+          <th>Disposition</th>
+        </tr>
+        <tr>
+          <td>User accounts (active)</td>
+          <td>Until deletion request or 24 months inactivity</td>
+          <td>Anonymization after 24 months inactive</td>
+        </tr>
+        <tr>
+          <td>Job postings</td>
+          <td>24 months after closing</td>
+          <td>Archived then deleted</td>
+        </tr>
+        <tr>
+          <td>Applications</td>
+          <td>24 months after final decision</td>
+          <td>Anonymized and aggregated</td>
+        </tr>
+        <tr>
+          <td>Audit logs</td>
+          <td>12 months (default), 7 years (regulated)</td>
+          <td>Cold storage archive</td>
+        </tr>
+        <tr>
+          <td>AI decision logs</td>
+          <td>6 months for model debugging</td>
+          <td>Aggregated to metrics</td>
+        </tr>
+        <tr>
+          <td>Resume files</td>
+          <td>Until user deletion or 24 months inactive</td>
+          <td>Securely deleted from S3</td>
+        </tr>
+        <tr>
+          <td>Notification records</td>
+          <td>90 days</td>
+          <td>Auto-purged</td>
+        </tr>
+        <tr>
+          <td>Analytics events</td>
+          <td>24 months raw, indefinite aggregate</td>
+          <td>Rolled up to daily aggregates</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ==================== SECTION 9: EXTERNAL INTERFACE REQUIREMENTS ==================== -->
+    <div class="section">
+      <h2 class="section-title">External Interface Requirements</h2>
+      <table>
+        <tr>
+          <th>Interface</th>
+          <th>Protocol</th>
+          <th>Purpose</th>
+          <th>Authentication</th>
+        </tr>
+        <tr>
+          <td>Email Service (SendGrid/SES)</td>
+          <td>REST API / SMTP</td>
+          <td>Transactional emails, digests</td>
+          <td>API Key</td>
+        </tr>
+        <tr>
+          <td>SMS Gateway (Twilio)</td>
+          <td>REST API</td>
+          <td>SMS notifications, 2FA</td>
+          <td>API Key</td>
+        </tr>
+        <tr>
+          <td>OAuth Providers (Google, LinkedIn, GitHub)</td>
+          <td>OAuth 2.0</td>
+          <td>Social sign-in, LinkedIn profile import</td>
+          <td>OAuth Client Credentials</td>
+        </tr>
+        <tr>
+          <td>Cloud Object Storage (S3/Blob)</td>
+          <td>REST API / SDK</td>
+          <td>Resume and document storage</td>
+          <td>IAM / SAS Token</td>
+        </tr>
+        <tr>
+          <td>LLM APIs (OpenAI, Anthropic)</td>
+          <td>REST API</td>
+          <td>JD generation, match explanations, career assistance</td>
+          <td>API Key</td>
+        </tr>
+        <tr>
+          <td>Vector DB (Pinecone/Weaviate)</td>
+          <td>gRPC / REST</td>
+          <td>Semantic search, similarity queries</td>
+          <td>API Key</td>
+        </tr>
+        <tr>
+          <td>Payment Gateway (Stripe)</td>
+          <td>REST API</td>
+          <td>Employer subscriptions, invoice processing</td>
+          <td>API Key + Webhook signature</td>
+        </tr>
+        <tr>
+          <td>Calendar Service (Google/Apple/Outlook)</td>
+          <td>CalDAV / REST</td>
+          <td>Interview scheduling, calendar sync</td>
+          <td>OAuth 2.0</td>
+        </tr>
+        <tr>
+          <td>Analytics (GA/Mixpanel)</td>
+          <td>REST API / SDK</td>
+          <td>Product usage tracking</td>
+          <td>Measurement ID / API Key</td>
+        </tr>
+        <tr>
+          <td>ClamAV (Malware scanning)</td>
+          <td>TCP Socket / CLI</td>
+          <td>Resume file scanning</td>
+          <td>Internal network</td>
+        </tr>
+      </table>
+
+      <h3>API Documentation Requirements</h3>
+      <ul>
+        <li>All APIs documented using OpenAPI 3.0 specification</li>
+        <li>
+          Versioned API endpoints (<code>/api/v1/...</code>) with backward
+          compatibility
+        </li>
+        <li>
+          Rate limiting headers returned on all API responses
+          (<code>X-RateLimit-*</code>)
+        </li>
+        <li>
+          Webhook endpoints for external event consumption (payment, calendar)
+        </li>
+      </ul>
+    </div>
+
+    <!-- ==================== SECTION 10: ACCEPTANCE CRITERIA ==================== -->
+    <div class="section">
+      <h2 class="section-title">Acceptance Criteria</h2>
+      <p>
+        The platform is considered
+        <strong>ready for production deployment</strong> when all of the
+        following acceptance criteria are met:
+      </p>
+      <table>
+        <tr>
+          <th>#</th>
+          <th>Acceptance Criterion</th>
+          <th>Verification Method</th>
+        </tr>
+        <tr>
+          <td>AC-001</td>
+          <td>
+            All HIGH-priority functional requirements (FR) are implemented and
+            pass QA testing.
+          </td>
+          <td>Test report with 100% pass rate on HIGH-priority test cases</td>
+        </tr>
+        <tr>
+          <td>AC-002</td>
+          <td>
+            All HIGH-priority non-functional requirements (NFR) are met
+            (performance, security, reliability).
+          </td>
+          <td>
+            Load test report, penetration test report, availability monitoring
+          </td>
+        </tr>
+        <tr>
+          <td>AC-003</td>
+          <td>
+            Security audit passes with no critical or high vulnerabilities;
+            OWASP Top 10 controls verified.
+          </td>
+          <td>Third-party security audit report</td>
+        </tr>
+        <tr>
+          <td>AC-004</td>
+          <td>
+            AI features achieve minimum quality thresholds: match score accuracy
+            ≥ 70%, JD generation relevance ≥ 80%, resume parsing accuracy ≥ 85%.
+          </td>
+          <td>AI evaluation suite with labeled test data</td>
+        </tr>
+        <tr>
+          <td>AC-005</td>
+          <td>
+            System supports 100,000 concurrent users with performance SLAs met
+            at 10x expected load.
+          </td>
+          <td>Load test results with p95 metrics</td>
+        </tr>
+        <tr>
+          <td>AC-006</td>
+          <td>
+            GDPR compliance verified: DSAR workflow functional, data
+            export/delete automated, consent management in place.
+          </td>
+          <td>Compliance audit checklist</td>
+        </tr>
+        <tr>
+          <td>AC-007</td>
+          <td>
+            Accessibility audit passes WCAG 2.1 Level AA for all core user
+            flows.
+          </td>
+          <td>Accessibility test report</td>
+        </tr>
+        <tr>
+          <td>AC-008</td>
+          <td>
+            Full disaster recovery test performed: database failover, backup
+            restoration, and service recovery within RTO/RPO targets.
+          </td>
+          <td>DR test report</td>
+        </tr>
+        <tr>
+          <td>AC-009</td>
+          <td>
+            User acceptance testing (UAT) completed with feedback incorporated;
+            satisfaction score ≥ 4/5 from beta testers.
+          </td>
+          <td>UAT summary report</td>
+        </tr>
+        <tr>
+          <td>AC-010</td>
+          <td>
+            Documentation delivered: API docs, deployment guide, runbook,
+            monitoring dashboards, and training materials.
+          </td>
+          <td>Documentation review checklist</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ==================== SECTION 11: SYSTEM CONSTRAINTS ==================== -->
+    <div class="section">
+      <h2 class="section-title">System Constraints</h2>
+      <table>
+        <tr>
+          <th>Constraint ID</th>
+          <th>Constraint Description</th>
+          <th>Impact</th>
+        </tr>
+        <tr>
+          <td><code>CON-001</code></td>
+          <td>
+            System must be cloud-deployed on AWS (primary) or Azure (DR) with no
+            on-premises requirement.
+          </td>
+          <td>Infrastructure architecture bound to cloud services</td>
+        </tr>
+        <tr>
+          <td><code>CON-002</code></td>
+          <td>
+            All development must use TypeScript (frontend/backend) and Python
+            (AI services).
+          </td>
+          <td>Development team skill requirements</td>
+        </tr>
+        <tr>
+          <td><code>CON-003</code></td>
+          <td>
+            AI model API calls must not exceed latency budget of 3s for
+            synchronous responses.
+          </td>
+          <td>Model selection limited to fast inference endpoints</td>
+        </tr>
+        <tr>
+          <td><code>CON-004</code></td>
+          <td>
+            Resume file size limit: 10MB; supported formats: PDF, DOCX, TXT.
+          </td>
+          <td>Large file handling not supported</td>
+        </tr>
+        <tr>
+          <td><code>CON-005</code></td>
+          <td>
+            All user-facing content must be in English; no localization required
+            for MVP.
+          </td>
+          <td>i18n framework in place but only English strings</td>
+        </tr>
+        <tr>
+          <td><code>CON-006</code></td>
+          <td>
+            Free-tier accounts have strict API rate limits (100
+            requests/minute).
+          </td>
+          <td>Rate limiting infrastructure required</td>
+        </tr>
+        <tr>
+          <td><code>CON-007</code></td>
+          <td>
+            AI features require user consent; no AI feature runs without
+            explicit opt-in.
+          </td>
+          <td>Consent management integration required</td>
+        </tr>
+        <tr>
+          <td><code>CON-008</code></td>
+          <td>
+            System must support data residency: EU data stored in EU regions; US
+            data in US regions.
+          </td>
+          <td>Multi-region deployment required</td>
+        </tr>
+        <tr>
+          <td><code>CON-009</code></td>
+          <td>
+            Payment processing handled entirely by Stripe; no credit card data
+            stored on platform servers.
+          </td>
+          <td>PCI DSS compliance simplified (SAQ-A)</td>
+        </tr>
+        <tr>
+          <td><code>CON-010</code></td>
+          <td>
+            All AI-generated content must be human-reviewable before being
+            applied or published.
+          </td>
+          <td>UI design must include review/edit step for AI outputs</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ==================== SECTION 12: APPENDIX ==================== -->
+    <div class="section">
+      <h2 class="section-title">Appendix</h2>
+
+      <h3>12.1 Glossary</h3>
+      <table>
+        <tr>
+          <th>Term</th>
+          <th>Definition</th>
+        </tr>
+        <tr>
+          <td>ATS</td>
+          <td>Applicant Tracking System — software for managing recruitment</td>
+        </tr>
+        <tr>
+          <td>Embedding</td>
+          <td>Dense vector representation of text/semantic meaning</td>
+        </tr>
+        <tr>
+          <td>RAG</td>
+          <td>
+            Retrieval-Augmented Generation — combining search retrieval with LLM
+            generation
+          </td>
+        </tr>
+        <tr>
+          <td>Semantic Search</td>
+          <td>
+            Search that understands intent and meaning beyond keyword matching
+          </td>
+        </tr>
+        <tr>
+          <td>Match Score</td>
+          <td>
+            AI-computed compatibility score (0-100) between job seeker and job
+          </td>
+        </tr>
+        <tr>
+          <td>DSAR</td>
+          <td>
+            Data Subject Access Request — GDPR right to access personal data
+          </td>
+        </tr>
+        <tr>
+          <td>p95</td>
+          <td>
+            95th percentile — metric indicating that 95% of requests are faster
+            than this value
+          </td>
+        </tr>
+        <tr>
+          <td>RTO</td>
+          <td>Recovery Time Objective — maximum acceptable downtime</td>
+        </tr>
+        <tr>
+          <td>RPO</td>
+          <td>Recovery Point Objective — maximum acceptable data loss</td>
+        </tr>
+        <tr>
+          <td>Hybrid Search</td>
+          <td>
+            Combining full-text search (BM25) with vector similarity for better
+            ranking
+          </td>
+        </tr>
+        <tr>
+          <td>Drift</td>
+          <td>
+            Model performance degradation over time due to changing data
+            patterns
+          </td>
+        </tr>
+        <tr>
+          <td>Hallucination</td>
+          <td>AI generating factually incorrect or fabricated information</td>
+        </tr>
+      </table>
+
+      <h3>12.2 Requirement Traceability Matrix (Sample)</h3>
+      <p>
+        Full traceability maintained in the project's requirement management
+        tool. Sample mapping below:
+      </p>
+      <table>
+        <tr>
+          <th>Requirement ID</th>
+          <th>Related Use Case</th>
+          <th>Related Test Case</th>
+          <th>Related Design Doc</th>
+        </tr>
+        <tr>
+          <td>FR-AUTH-001</td>
+          <td>UC-001</td>
+          <td>TC-AUTH-001 through TC-AUTH-010</td>
+          <td>DES-ARCH-Auth-Service</td>
+        </tr>
+        <tr>
+          <td>FR-AI-001</td>
+          <td>UC-005</td>
+          <td>TC-AI-001 through TC-AI-015</td>
+          <td>DES-AI-Recommendation-Engine</td>
+        </tr>
+        <tr>
+          <td>FR-JOB-001</td>
+          <td>UC-002</td>
+          <td>TC-JOB-001 through TC-JOB-008</td>
+          <td>DES-Job-Service</td>
+        </tr>
+        <tr>
+          <td>NFR-SEC-001</td>
+          <td>All</td>
+          <td>TC-SEC-001 through TC-SEC-020</td>
+          <td>DES-Security-Framework</td>
+        </tr>
+        <tr>
+          <td>NFR-PERF-001</td>
+          <td>All</td>
+          <td>TC-PERF-001 through TC-PERF-015</td>
+          <td>DES-Performance-Optimization</td>
+        </tr>
+      </table>
+
+      <h3>12.3 Revision History</h3>
+      <table>
+        <tr>
+          <th>Version</th>
+          <th>Date</th>
+          <th>Author</th>
+          <th>Changes</th>
+        </tr>
+        <tr>
+          <td>1.0.0</td>
+          <td>June 15, 2025</td>
+          <td>Product Team</td>
+          <td>Initial draft — core functional requirements</td>
+        </tr>
+        <tr>
+          <td>1.5.0</td>
+          <td>August 20, 2025</td>
+          <td>Product Team</td>
+          <td>Added AI features, NFRs, and business rules</td>
+        </tr>
+        <tr>
+          <td>2.0.0</td>
+          <td>September 30, 2025</td>
+          <td>Engineering</td>
+          <td>Added architecture overview, semantic search, RAG</td>
+        </tr>
+        <tr>
+          <td>2.2.0</td>
+          <td>October 25, 2025</td>
+          <td>Security Team</td>
+          <td>Added security requirements, AI safety, compliance</td>
+        </tr>
+        <tr>
+          <td>2.4.0</td>
+          <td>November 15, 2025</td>
+          <td>Architecture Review Board</td>
+          <td>Final review, acceptance criteria, system constraints</td>
+        </tr>
+      </table>
+
+      <h3>12.4 Approval Signatures</h3>
+      <table>
+        <tr>
+          <th>Role</th>
+          <th>Name</th>
+          <th>Signature</th>
+          <th>Date</th>
+        </tr>
+        <tr>
+          <td>VP of Engineering</td>
+          <td>_________________</td>
+          <td>_________________</td>
+          <td>____/____/______</td>
+        </tr>
+        <tr>
+          <td>Product Manager</td>
+          <td>_________________</td>
+          <td>_________________</td>
+          <td>____/____/______</td>
+        </tr>
+        <tr>
+          <td>Security Officer</td>
+          <td>_________________</td>
+          <td>_________________</td>
+          <td>____/____/______</td>
+        </tr>
+        <tr>
+          <td>Lead Architect</td>
+          <td>_________________</td>
+          <td>_________________</td>
+          <td>____/____/______</td>
+        </tr>
+        <tr>
+          <td>QA Lead</td>
+          <td>_________________</td>
+          <td>_________________</td>
+          <td>____/____/______</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="doc-footer">
+      <p>
+        <strong>HireFlow AI Recruitment Suite</strong> — Software Requirements
+        Specification v2.4.0 | Page <span class="page-number"></span>
+      </p>
+      <p>Internal / Confidential | © 2025 HireFlow Inc. All rights reserved.</p>
+      <p style="font-size: 8pt; margin-top: 5px">
+        This document contains proprietary information and may not be reproduced
+        or distributed without written authorization.
+      </p>
+    </div>
+  </body>
+</html>
