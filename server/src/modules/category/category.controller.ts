@@ -22,23 +22,39 @@ export class CategoryController {
     );
 
     getAll = asyncHandler(
-        async (_req: Request, res: Response): Promise<void> => {
-            const categories = await categoryService.getAll();
+        async (req: Request, res: Response): Promise<void> => {
+            const page = req.query.page as number | undefined;
+            const limit = req.query.limit as number | undefined;
+
+            const result = await categoryService.getAll(
+                page,
+                limit
+            );
 
             sendResponse(
                 res,
                 200,
                 "Categories retrieved successfully.",
-                categories
+                result.categories,
+                {
+                    page: result.pagination.page,
+                    limit: result.pagination.limit,
+                    skip: result.pagination.skip,
+                    totalPages: result.pagination.totalPages,
+                    totalItems: result.pagination.totalItems,
+                    hasNextPage: result.pagination.hasNextPage,
+                    hasPreviousPage: result.pagination.hasPreviousPage,
+                }
             );
         }
     );
 
+
     getById = asyncHandler(
         async (req: Request, res: Response): Promise<void> => {
-            const category = await categoryService.getById(
-                req.params.id as string
-            );
+            const id = req.params.id as string;
+
+            const category = await categoryService.getById(id);
 
             sendResponse(
                 res,
@@ -51,9 +67,9 @@ export class CategoryController {
 
     getByName = asyncHandler(
         async (req: Request, res: Response): Promise<void> => {
-            const category = await categoryService.getByName(
-                req.query.name as string
-            );
+            const name = req.query.name as string;
+
+            const category = await categoryService.getByName(name);
 
             sendResponse(
                 res,
@@ -66,9 +82,9 @@ export class CategoryController {
 
     getBySlug = asyncHandler(
         async (req: Request, res: Response): Promise<void> => {
-            const category = await categoryService.getBySlug(
-                req.params.slug as string
-            );
+            const slug = req.params.slug as string;
+
+            const category = await categoryService.getBySlug(slug);
 
             sendResponse(
                 res,
@@ -81,8 +97,10 @@ export class CategoryController {
 
     update = asyncHandler(
         async (req: Request, res: Response): Promise<void> => {
+            const id = req.params.id as string;
+
             const category = await categoryService.update(
-                req.params.id as string,
+                id,
                 req.body
             );
 
@@ -97,7 +115,9 @@ export class CategoryController {
 
     delete = asyncHandler(
         async (req: Request, res: Response): Promise<void> => {
-            await categoryService.delete(req.params.id as string);
+            const id = req.params.id as string;
+
+            await categoryService.delete(id);
 
             sendResponse(
                 res,

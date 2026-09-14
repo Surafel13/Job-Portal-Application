@@ -22,11 +22,18 @@ export class CategoryRepository {
     }
 
     async findAll(
-        filter: Record<string, unknown> = {}
+        skip: number,
+        limit: number
     ): Promise<ICategory[]> {
-        return await Category.find(filter)
+        return await Category.find()
             .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
             .lean<ICategory[]>();
+    }
+
+    async count(): Promise<number> {
+        return await Category.countDocuments();
     }
 
     async updateById(

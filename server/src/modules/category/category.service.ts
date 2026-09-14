@@ -1,11 +1,12 @@
 import { ApiError } from "../../utils/ApiError.js";
+import { getPagination } from "../../utils/pagination.js";
 import type { ICategory } from "./category.interface.js";
 import { CategoryRepository } from "./category.repository.js";
 
 export class CategoryService {
     constructor(
         private readonly categoryRepository: CategoryRepository
-    ) { }
+    ) {}
 
     async create(data: ICategory): Promise<ICategory> {
         const existingName =
@@ -57,8 +58,26 @@ export class CategoryService {
         return category;
     }
 
-    async getAll(): Promise<ICategory[]> {
-        return await this.categoryRepository.findAll();
+    async getAll(page?: number, limit?: number) {
+        const totalItems = await this.categoryRepository.count();
+
+        const pagination = getPagination(
+            {
+                page,
+                limit,
+            },
+            totalItems
+        );
+
+        const categories = await this.categoryRepository.findAll(
+            pagination.skip,
+            pagination.limit
+        );
+
+        return {
+            categories,
+            pagination,
+        };
     }
 
     async update(

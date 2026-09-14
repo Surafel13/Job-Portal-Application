@@ -64,3 +64,8 @@ export const updateCategorySchema = z
         (data) => Object.keys(data).length > 0,
         "At least one field is required for update."
     );
+
+export const categoryQuerySchema = z.object({
+    page: z.coerce.number().int().min(1).optional(),
+    limit: z.coerce.number().int().min(1).max(100).optional(),
+});
