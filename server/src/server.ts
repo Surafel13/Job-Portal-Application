@@ -1,6 +1,7 @@
 import app from "./app.js";
 import env from "./config/env.js";
-import { connectDatabase } from "./config/database.js";
+import { connectDatabase, disconnectDatabase } from "./config/database.js";
+// import { disconnectRedis } from "./config/redis.js";
 
 const startServer = async (): Promise<void> => {
     try {
@@ -12,9 +13,8 @@ const startServer = async (): Promise<void> => {
 
         const shutdown = async (): Promise<void> => {
             server.close(async () => {
-                await import("./config/database.js").then(({ disconnectDatabase }) =>
-                    disconnectDatabase()
-                );
+                await disconnectDatabase();
+                // await disconnectRedis();
 
                 process.exit(0);
             });
