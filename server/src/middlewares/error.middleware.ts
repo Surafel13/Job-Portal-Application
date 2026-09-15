@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler } from "express";
 import mongoose from "mongoose";
+import multer from "multer";
 import { ZodError } from "zod";
 import logger from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -10,8 +11,7 @@ const errorMiddleware: ErrorRequestHandler = (
     res,
     _next
 ): void => {
-    logger.error("Request error", {
-        error,
+    logger.error(error, {
         method: req.method,
         url: req.originalUrl,
     });
@@ -53,6 +53,15 @@ const errorMiddleware: ErrorRequestHandler = (
         res.status(400).json({
             success: false,
             message: `Invalid value for ${error.path}`,
+            errors: [],
+        });
+        return;
+    }
+
+    if (error instanceof multer.MulterError) {
+        res.status(400).json({
+            success: false,
+            message: error.message,
             errors: [],
         });
         return;

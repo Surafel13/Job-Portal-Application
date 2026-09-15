@@ -45,8 +45,22 @@ export const registerSchema = z
             .max(150, "Location must not exceed 150 characters.")
             .optional(),
 
+        companyName: z
+            .string()
+            .trim()
+            .min(2, "Company name must be at least 2 characters.")
+            .max(150, "Company name must not exceed 150 characters.")
+            .optional(),
+
         role: z.enum(["worker", "employer"]),
     })
+    .refine(
+        (data) => data.role !== "employer" || Boolean(data.companyName),
+        {
+            message: "Company name is required for employer registration.",
+            path: ["companyName"],
+        }
+    )
     .strict();
 
 export const loginSchema = z

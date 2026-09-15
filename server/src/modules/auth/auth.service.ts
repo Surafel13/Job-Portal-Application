@@ -19,8 +19,15 @@ import type {
     AuthResponse,
     SanitizedUser,
 } from "./auth.interface.js";
+import WorkerRepository from "../worker/worker.repository.js";
+import CompanyRepository from "../company/company.repository.js";
 
 export class AuthService {
+    constructor(
+        private readonly workerRepository = new WorkerRepository(),
+        private readonly companyRepository = new CompanyRepository()
+    ) {}
+
     private buildTokenPayload(user: IUser): TokenPayload {
         if (!user._id) {
             throw new ApiError(500, "User ID is missing.");
@@ -51,8 +58,50 @@ export class AuthService {
         return safeUser;
     }
 
+    private async createRoleProfile(
+        user: IUser,
+        companyName?: string
+    ): Promise<void> {
+        if (!user._id) {
+            throw new ApiError(500, "User ID is missing.");
+        }
+
+        if (user.role === "worker") {
+            await this.workerRepository.create({
+                userId: user._id,
+                skills: [],
+                education: [],
+                experience: [],
+                preferredJobTypes: [],
+                preferredLocations: [],
+                preferredWorkTypes: [],
+                resumeIds: [],
+                profileCompletion: 0,
+            });
+            return;
+        }
+
+        if (user.role === "employer" && companyName) {
+            await this.companyRepository.create({
+                name: companyName,
+                verificationStatus: "pending",
+                recruiters: [user._id],
+            });
+        }
+    }
+
     async register(data: RegisterDto): Promise<AuthResponse> {
         const email = data.email.toLowerCase().trim();
+
+        if (data.role === "employer" && data.companyName) {
+            const existingCompany = await this.companyRepository.findByName(
+                data.companyName
+            );
+
+            if (existingCompany) {
+                throw new ApiError(409, "Company name already exists.");
+            }
+        }
 
         const exists = await authRepository.existsByEmail(email);
 
@@ -82,6 +131,8 @@ export class AuthService {
         if (!user._id) {
             throw new ApiError(500, "User ID is missing.");
         }
+
+        await this.createRoleProfile(user, data.companyName);
 
         const tokens = this.generateTokens(user);
         const hashedRefreshToken = await hashPassword(
