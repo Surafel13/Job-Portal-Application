@@ -1,5 +1,6 @@
 import type { Types } from "mongoose";
 import type { IUser } from "../user/user.interface.js";
+import { UserRole } from "../user/user.interface.js";
 import type {
     RegisterInput,
     LoginInput,
@@ -14,7 +15,7 @@ export type AuthUserIdParamDto = AuthUserIdParamInput;
 
 export interface TokenPayload {
     userId: string;
-    role: string;
+    role: UserRole;
 }
 
 export interface AuthTokens {
@@ -30,7 +31,7 @@ export interface AuthResponse extends AuthTokens {
 
 export interface AuthenticatedUser {
     userId: string;
-    role: string;
+    role: UserRole;
 }
 
 export interface IAuthService {

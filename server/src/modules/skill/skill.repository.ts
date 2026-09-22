@@ -14,6 +14,22 @@ export class SkillRepository {
             .exec();
     }
 
+    async existsById(skillId: Types.ObjectId): Promise<boolean> {
+        const skill = await Skill.exists({
+            _id: skillId,
+        });
+
+        return skill !== null;
+    }
+
+    async countByIds(skillIds: Types.ObjectId[]): Promise<number> {
+        return Skill.countDocuments({
+            _id: {
+                $in: skillIds,
+            },
+        }).exec();
+    }
+
     async findByName(name: string): Promise<ISkill | null> {
         return Skill.findOne({ name })
             .lean<ISkill>()

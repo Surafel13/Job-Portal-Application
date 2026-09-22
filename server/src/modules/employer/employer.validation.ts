@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const companySizeSchema = z.enum([
+const employerSizeSchema = z.enum([
     "1-10",
     "11-50",
     "51-200",
@@ -10,27 +10,27 @@ const companySizeSchema = z.enum([
     "5001+",
 ]);
 
-const companyFieldsSchema = z.object({
+const employerFieldsSchema = z.object({
     name: z
         .string()
         .trim()
-        .min(2, "Company name must be at least 2 characters.")
-        .max(150, "Company name must not exceed 150 characters."),
+        .min(2, "Employer name must be at least 2 characters.")
+        .max(150, "Employer name must not exceed 150 characters."),
     website: z.string().url("Invalid website URL.").optional(),
     industry: z.string().trim().max(100).optional(),
-    size: companySizeSchema.optional(),
+    size: employerSizeSchema.optional(),
     headquarters: z.string().trim().max(150).optional(),
     description: z.string().trim().max(2000).optional(),
     logo: z.string().url("Invalid logo URL.").optional(),
 });
 
-export const companyIdParamSchema = z.object({
-    id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid company ID."),
+export const employerIdParamSchema = z.object({
+    id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid employer ID."),
 });
 
-export const createCompanySchema = companyFieldsSchema.strict();
+export const createEmployerSchema = employerFieldsSchema.strict();
 
-export const updateCompanySchema = companyFieldsSchema
+export const updateEmployerSchema = employerFieldsSchema
     .partial()
     .strict()
     .refine(
@@ -38,10 +38,10 @@ export const updateCompanySchema = companyFieldsSchema
         "At least one field is required for update."
     );
 
-export const companyQuerySchema = z.object({
+export const employerQuerySchema = z.object({
     page: z.coerce.number().int().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
 });
 
-export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
-export type UpdateCompanyInput = z.infer<typeof updateCompanySchema>;
+export type CreateEmployerInput = z.infer<typeof createEmployerSchema>;
+export type UpdateEmployerInput = z.infer<typeof updateEmployerSchema>;

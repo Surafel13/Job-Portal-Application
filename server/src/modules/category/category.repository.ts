@@ -36,6 +36,14 @@ export class CategoryRepository {
         return await Category.countDocuments();
     }
 
+    async existsById(categoryId: Types.ObjectId): Promise<boolean> {
+        const category = await Category.exists({
+            _id: categoryId,
+        });
+
+        return category !== null;
+    }
+
     async updateById(
         id: string,
         data: Partial<ICategory>
