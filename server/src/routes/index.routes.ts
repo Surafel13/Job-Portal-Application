@@ -10,7 +10,13 @@ import jobRouter from "../modules/job/job.route.js"
 import savedJobRouter from "../modules/savedJob/savedJob.route.js"
 import applicantRouter from "../modules/applicant/applicant.route.js"
 import applicationRouter from "../modules/application/application.route.js"
-import searchJobs from "../modules/search/search.route.js"
+import searchJobsRouter from "../modules/search/search.route.js"
+import reportRouter from "../modules/report/report.route.js"
+import notificationRouter from "../modules/notification/notification.route.js"
+
+// admin only 
+
+import AdminRouter from "../modules/admin/admin.route.js"
 
 
 const router = Router();
@@ -26,6 +32,9 @@ router.use("/jobs", jobRouter)
 router.use("/saved-job", savedJobRouter)
 router.use("/applicants", applicantRouter)
 router.use("/application", applicationRouter)
-router.use("/search", searchJobs)
+router.use("/search", searchJobsRouter)
+router.use("/report", reportRouter)
+router.use("/notification", notificationRouter)
+router.use("/admin", AdminRouter)
 
 export default router
