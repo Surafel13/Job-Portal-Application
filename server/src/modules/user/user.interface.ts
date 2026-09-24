@@ -32,4 +32,14 @@ export interface IUser {
     createdAt?: Date;
 
     updatedAt?: Date;
+
+    resetPasswordOtp?: string;
+
+    resetPasswordOtpExpiresAt?: Date;
+
+    resetPasswordOtpAttempts?: number;
+
+    resetPasswordToken?: string;
+
+    resetPasswordTokenExpiresAt?: Date;
 }

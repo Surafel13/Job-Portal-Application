@@ -68,11 +68,37 @@ const userSchema = new Schema<IUser>(
         lastLogin: {
             type: Date,
         },
+
+        resetPasswordOtp: {
+            type: String,
+            select: false,
+        },
+
+        resetPasswordOtpExpiresAt: {
+            type: Date,
+            select: false,
+        },
+
+        resetPasswordOtpAttempts: {
+            type: Number,
+            default: 0,
+            select: false,
+        },
+
+        resetPasswordToken: {
+            type: String,
+            select: false,
+        },
+
+        resetPasswordTokenExpiresAt: {
+            type: Date,
+            select: false,
+        },
     },
     {
         timestamps: true,
         versionKey: false,
-    }
+    },
 );
 
 userSchema.index({ status: 1, role: 1 });
