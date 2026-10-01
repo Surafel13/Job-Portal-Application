@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import type { IEmployer } from "./employer.interface.js";
 
-const companySchema = new Schema<IEmployer>(
+const employerSchema = new Schema<IEmployer>(
     {
         name: {
             type: String,
@@ -63,8 +63,8 @@ const companySchema = new Schema<IEmployer>(
     }
 );
 
-companySchema.index({ recruiters: 1 });
+employerSchema.index({ recruiters: 1 });
 
-export const Company = model<IEmployer>("Company", companySchema);
+export const Company = model<IEmployer>("Employer", employerSchema);
 
 export default Company;

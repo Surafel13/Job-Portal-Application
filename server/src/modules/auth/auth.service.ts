@@ -15,7 +15,7 @@ import type {
   AuthTokens,
   AuthResponse,
   SanitizedUser,
-} from "./auth.interface.js";
+} from "./auth.interface.js"; 
 import WorkerRepository from "../worker/worker.repository.js";
 import EmployerRepository from "../employer/employer.repository.js";
 
@@ -78,6 +78,7 @@ export class AuthService {
       await this.workerRepository.create({
         userId: user._id,
         skills: [],
+        categoryIds: [],
         education: [],
         experience: [],
         preferredJobTypes: [],

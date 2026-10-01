@@ -1,118 +1,110 @@
-import { connectDatabase, disconnectDatabase } from "../config/database.js";
+import mongoose from "mongoose";
+import env from "../config/env.js"; 
 import { Category } from "../modules/category/category.model.js";
+import type { ICategory } from "../modules/category/category.interface.js";
 
-const categories = [
-    {
-        name: "Software Development",
-        slug: "software-development",
-        description: "Jobs related to software development and programming",
-        isActive: true,
-    },
-    {
-        name: "Web Development",
-        slug: "web-development",
-        description: "Jobs related to frontend, backend, and full-stack web development",
-        isActive: true,
-    },
-    {
-        name: "Mobile Development",
-        slug: "mobile-development",
-        description: "Jobs related to Android, iOS, React Native, and mobile applications",
-        isActive: true,
-    },
-    {
-        name: "Data Science",
-        slug: "data-science",
-        description: "Jobs related to data analysis, machine learning, and data science",
-        isActive: true,
-    },
-    {
-        name: "Cybersecurity",
-        slug: "cybersecurity",
-        description: "Jobs related to information security, network security, and cybersecurity",
-        isActive: true,
-    },
-    {
-        name: "UI/UX Design",
-        slug: "ui-ux-design",
-        description: "Jobs related to user interface and user experience design",
-        isActive: true,
-    },
-    {
-        name: "Graphic Design",
-        slug: "graphic-design",
-        description: "Jobs related to visual design, branding, and digital graphics",
-        isActive: true,
-    },
-    {
-        name: "Digital Marketing",
-        slug: "digital-marketing",
-        description: "Jobs related to online marketing, social media, and digital campaigns",
-        isActive: true,
-    },
-    {
-        name: "Accounting and Finance",
-        slug: "accounting-and-finance",
-        description: "Jobs related to accounting, finance, auditing, and financial management",
-        isActive: true,
-    },
-    {
-        name: "Sales",
-        slug: "sales",
-        description: "Jobs related to sales, business development, and customer acquisition",
-        isActive: true,
-    },
-    {
-        name: "Human Resources",
-        slug: "human-resources",
-        description: "Jobs related to recruitment, employee management, and human resources",
-        isActive: true,
-    },
-    {
-        name: "Healthcare",
-        slug: "healthcare",
-        description: "Jobs related to healthcare, medicine, nursing, and medical services",
-        isActive: true,
-    },
-    {
-        name: "Education",
-        slug: "education",
-        description: "Jobs related to teaching, training, academic services, and education",
-        isActive: true,
-    },
-    {
-        name: "Engineering",
-        slug: "engineering",
-        description: "Jobs related to civil, mechanical, electrical, and other engineering fields",
-        isActive: true,
-    },
-    {
-        name: "Customer Service",
-        slug: "customer-service",
-        description: "Jobs related to customer support, communication, and client services",
-        isActive: true,
-    },
+/**
+ * Seed categories for a job portal.
+ * Uses upsert-by-slug so re-running is idempotent (no duplicates).
+ */
+
+const slugify = (value: string): string =>
+    value
+        .toLowerCase()
+        .trim()
+        .replace(/&/g, "and")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+const categoryNames: string[] = [
+    // Tech & Engineering
+    "Software Engineering",
+    "Web Development",
+    "Mobile Development",
+    "DevOps & Cloud",
+    "Data Science & Analytics",
+    "Artificial Intelligence & Machine Learning",
+    "Cybersecurity",
+    "Quality Assurance & Testing",
+
+    // Product & Design
+    "Product Management",
+    "UI/UX Design",
+    "Graphic Design",
+
+    // Business & Operations
+    "Marketing & Growth",
+    "Sales & Business Development",
+    "Customer Support",
+    "Human Resources",
+    "Finance & Accounting",
+    "Operations & Logistics",
+
+    // Domain-specific
+    "Healthcare & Medical",
+    "Education & Training",
+    "Legal & Compliance",
+    "Engineering (Non-Software)",
+
+    // Content & Creative
+    "Content Writing & Copywriting",
+    "Media & Communications",
+
+    // Internships / Early career
+    "Internships & Entry Level",
 ];
 
-const seedCategories = async (): Promise<void> => {
-    try {
-        await connectDatabase();
+const buildCategories = (): ICategory[] =>
+    categoryNames.map((name) => ({
+        name,
+        slug: slugify(name),
+        description: `Jobs related to ${name}.`,
+        isActive: true,
+    }));
 
-        for (const category of categories) {
-            await Category.updateOne(
-                { slug: category.slug },
-                { $set: category },
-                { upsert: true }
-            );
+const seedCategories = async (): Promise<void> => {
+    const mongoUri = env.DATABASE_URL;
+
+    if (!mongoUri) {
+        throw new Error("MONGO_URI is not defined in environment/config");
+    }
+
+    let connectedHere = false;
+
+    try {
+        if (mongoose.connection.readyState === 0) {
+            await mongoose.connect(mongoUri);
+            connectedHere = true;
+            console.log("🔌 Connected to MongoDB");
         }
 
-        console.log("15 categories seeded successfully.");
+        const categories = buildCategories();
+
+        const operations = categories.map((category) => ({
+            updateOne: {
+                filter: { slug: category.slug },
+                update: { $setOnInsert: category },
+                upsert: true,
+            },
+        }));
+
+        const result = await Category.bulkWrite(operations, { ordered: false });
+
+        const inserted = result.upsertedCount ?? 0;
+        const matched = result.matchedCount ?? 0;
+
+        console.log(
+            `✅ Category seed complete — inserted: ${inserted}, already existed: ${matched}, total processed: ${categories.length}`
+        );
     } catch (error) {
-        console.error("Category seed failed:", error);
+        console.error("❌ Category seed failed:", error);
         process.exitCode = 1;
     } finally {
-        await disconnectDatabase();
+        if (connectedHere) {
+            await mongoose.disconnect();
+            console.log("🔌 Disconnected from MongoDB");
+        }
     }
 };
 
-seedCategories();
+void seedCategories();

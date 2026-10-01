@@ -18,6 +18,10 @@ import notificationRouter from "../modules/notification/notification.route.js"
 
 import AdminRouter from "../modules/admin/admin.route.js"
 
+// ai
+
+import recommendationRouter from "../modules/ai/recommendation/recommendation.route.js"
+
 
 const router = Router();
 
@@ -36,5 +40,6 @@ router.use("/search", searchJobsRouter)
 router.use("/report", reportRouter)
 router.use("/notification", notificationRouter)
 router.use("/admin", AdminRouter)
+router.use("/recommendation", recommendationRouter)
 
 export default router

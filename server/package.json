@@ -8,13 +8,16 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed:category": "tsx src/seeds/category.seed.ts",
-    "seed:users": "tsx src/seeds/users.seed.ts"
+    "seed:users": "tsx src/seeds/users.seed.ts",
+    "seed:skills": "tsx src/seeds/skills.seed.ts",
+    "seed:jobs": "tsx src/seeds/jobs.seed.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/genai": "^2.25.0",
     "bcryptjs": "^3.0.3",
     "chalk": "^6.0.0",
     "cloudinary": "^2.11.0",
