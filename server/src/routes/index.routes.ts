@@ -14,16 +14,17 @@ import searchJobsRouter from "../modules/search/search.route.js"
 import reportRouter from "../modules/report/report.route.js"
 import notificationRouter from "../modules/notification/notification.route.js"
 
-// admin only 
+// admin only
 
 import AdminRouter from "../modules/admin/admin.route.js"
 
 // ai
 
 import recommendationRouter from "../modules/ai/recommendation/recommendation.route.js"
+import semanticSearchRouter from "../modules/ai/semanticSearch/semanticSearch.route.js"
 
 
-const router = Router();
+const router: Router = Router();
 
 router.use("/auth", authRouter)
 router.use("/users", userRouter)
@@ -41,5 +42,6 @@ router.use("/report", reportRouter)
 router.use("/notification", notificationRouter)
 router.use("/admin", AdminRouter)
 router.use("/recommendation", recommendationRouter)
+router.use("/semantic-search", semanticSearchRouter)
 
 export default router

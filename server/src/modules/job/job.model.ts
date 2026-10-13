@@ -184,6 +184,26 @@ jobSchema.index({
     status: 1,
 });
 
+jobSchema.index(
+    {
+        title: "text",
+        description: "text",
+        requirements: "text",
+        responsibilities: "text",
+        location: "text",
+    },
+    {
+        name: "job_text_search",
+        weights: {
+            title: 10,
+            requirements: 5,
+            description: 3,
+            responsibilities: 2,
+            location: 1,
+        },
+    },
+);
+
 export const JobModel = mongoose.model<IJob>(
     "Job",
     jobSchema

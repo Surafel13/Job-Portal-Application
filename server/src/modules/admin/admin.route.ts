@@ -12,7 +12,7 @@ import {
     jobIdParamSchema,
 } from "./admin.validation.js";
 
-const router = Router();
+const router: Router = Router();
 
 router.use(
     authMiddleware,

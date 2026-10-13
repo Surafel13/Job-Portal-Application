@@ -4,6 +4,8 @@ import jobRepository from "./job.repository.js";
 import EmployerRepository from "../employer/employer.repository.js";
 import { CategoryRepository } from "../category/category.repository.js";
 import SkillRepository from "../skill/skill.repository.js";
+import embeddingService from "../ai/embedding/embedding.service.js";
+import logger from "../../utils/logger.js";
 import type {
     IJob,
     JobStatus,
@@ -155,7 +157,9 @@ export class JobService {
             viewCount: data.viewCount ?? 0,
         };
 
-        return jobRepository.create(jobData);
+        const job = await jobRepository.create(jobData);
+        await this.syncJobEmbedding(job);
+        return job;
     }
 
     async getJobById(
@@ -345,6 +349,7 @@ export class JobService {
             );
         }
 
+        await this.syncJobEmbedding(job);
         return job;
     }
 
@@ -444,7 +449,30 @@ export class JobService {
                 "Job not found."
             );
         }
+
+        try {
+            await embeddingService.removeJobIndex(jobId);
+        } catch (error) {
+            logger.error(
+                `Failed to remove the job embedding for ${jobId}: ${
+                    error instanceof Error ? error.stack ?? error.message : String(error)
+                }`,
+            );
+        }
     }
+
+    private async syncJobEmbedding(job: IJob): Promise<void> {
+        try {
+            await embeddingService.indexJob(job);
+        } catch (error) {
+            logger.error(
+                `Failed to update the semantic-search embedding for job ${
+                    job._id?.toString() ?? "unknown"
+                }: ${error instanceof Error ? error.stack ?? error.message : String(error)}`,
+            );
+        }
+    }
+
 }
 
 export const jobService =

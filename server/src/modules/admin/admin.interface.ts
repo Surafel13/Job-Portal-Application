@@ -11,7 +11,6 @@ export type AdminAction =
     | "reject_job"
     | "close_job"
     | "review_report"
-    | "review_moderation"
     | "update_user"
     | "delete_user";
 
@@ -19,8 +18,7 @@ export type AdminResourceType =
     | "user"
     | "employer"
     | "job"
-    | "report"
-    | "moderation";
+    | "report";
 
 export interface IAdminAction {
     _id?: Types.ObjectId;

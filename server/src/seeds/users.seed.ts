@@ -4,6 +4,7 @@ import User from "../modules/user/user.model.js";
 import Worker from "../modules/worker/worker.model.js";
 import { Category } from "../modules/category/category.model.js";
 import authService from "../modules/auth/auth.service.js";
+import { hashPassword } from "../utils/password.js";
 import type { RegisterDto } from "../modules/auth/auth.interface.js";
 import type {
   EmploymentPreference,
@@ -15,6 +16,11 @@ import type {
  * ────────────────────────────────────────────────────────────────────────── */
 
 const DEFAULT_PASSWORD = process.env.SEED_USER_PASSWORD ?? "Password123!";
+const ADMIN_EMAIL = (
+  process.env.SEED_ADMIN_EMAIL ?? "admin@example.com"
+).toLowerCase().trim();
+const ADMIN_PASSWORD =
+  process.env.SEED_ADMIN_PASSWORD ?? DEFAULT_PASSWORD;
 
 const STRICT_CATEGORY_CHECK = process.env.SEED_STRICT_CATEGORIES !== "false";
 
@@ -562,6 +568,38 @@ const emailExists = async (email: string): Promise<boolean> => {
   return found !== null;
 };
 
+const seedAdmin = async (): Promise<"created" | "skipped"> => {
+  if (!ADMIN_EMAIL || ADMIN_PASSWORD.length < 8) {
+    throw new Error(
+      "Admin seed requires a valid email and a password of at least 8 characters.",
+    );
+  }
+
+  const existingAdmin = await User.findOne({ email: ADMIN_EMAIL });
+  if (existingAdmin) {
+    if (existingAdmin.role !== "admin" && existingAdmin.role !== "superAdmin") {
+      throw new Error(
+        `Cannot seed admin: ${ADMIN_EMAIL} is already registered as ${existingAdmin.role}.`,
+      );
+    }
+
+    console.log(`⏭️  Skipped admin (exists): ${ADMIN_EMAIL}`);
+    return "skipped";
+  }
+
+  const password = await hashPassword(ADMIN_PASSWORD);
+  await User.create({
+    fullName: "Platform Administrator",
+    email: ADMIN_EMAIL,
+    password,
+    role: "admin",
+    status: "active",
+  });
+
+  console.log(`✅ Created admin: ${ADMIN_EMAIL}`);
+  return "created";
+};
+
 const loadCategoryMap = async (): Promise<
   Map<string, mongoose.Types.ObjectId>
 > => {
@@ -678,6 +716,7 @@ const seedUsers = async (): Promise<void> => {
     let created = 0;
     let skipped = 0;
     let enriched = 0;
+    let adminCreated = false;
     const failures: { email: string; reason: string }[] = [];
 
     for (const seed of allUsers) {
@@ -716,9 +755,18 @@ const seedUsers = async (): Promise<void> => {
       }
     }
 
+    try {
+      adminCreated = (await seedAdmin()) === "created";
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      failures.push({ email: ADMIN_EMAIL, reason });
+      console.error(`❌ Failed to seed admin: ${reason}`);
+    }
+
     console.log("\n──────── Seed summary ────────");
     console.log(`Workers seeded:   ${workers.length}`);
     console.log(`Employers seeded: ${employers.length}`);
+    console.log(`Admin created:    ${adminCreated ? 1 : 0}`);
     console.log(`Created:          ${created}`);
     console.log(`Enriched workers: ${enriched}`);
     console.log(`Skipped:          ${skipped}`);
@@ -727,6 +775,13 @@ const seedUsers = async (): Promise<void> => {
     console.log(
       `Default password: ${DEFAULT_PASSWORD} (override with SEED_USER_PASSWORD)`,
     );
+    if (!process.env.SEED_ADMIN_PASSWORD && env.NODE_ENV === "production") {
+      console.warn(
+        "⚠️  SEED_ADMIN_PASSWORD is unset; the admin seed uses the shared seed-user password.",
+      );
+    }
+    console.log(`Admin login email: ${ADMIN_EMAIL}`);
+    console.log("Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD to customize admin credentials.");
     console.log("──────────────────────────────\n");
 
     if (failures.length > 0) {
