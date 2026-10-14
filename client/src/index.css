@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #f4f1ff;
+  --color-brand-100: #ebe4ff;
+  --color-brand-200: #d9ccff;
+  --color-brand-300: #bda6ff;
+  --color-brand-400: #9b78ff;
+  --color-brand-500: #7c5cff;
+  --color-brand-600: #6d4dff;
+  --color-brand-700: #5b3de6;
+  --color-brand-800: #4a2fc0;
+  --color-brand-900: #1b1545;
+
+  --color-ink: #16122d;
+  --color-muted: #6b6785;
+  --color-line: #ece8f8;
+  --color-surface: #f7f5ff;
+}
+
+:root {
+  color-scheme: light;
+  font-family: var(--font-sans);
+  background: #f7f5ff;
+  color: #16122d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 500px at 90% -10%, rgba(124, 92, 255, 0.18), transparent 55%),
+    radial-gradient(900px 420px at -10% 0%, rgba(99, 102, 241, 0.12), transparent 50%),
+    #f7f5ff;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+.auth-panel {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 40%),
+    linear-gradient(160deg, #6d4dff 0%, #4f46e5 52%, #312e81 100%);
+}
+
+.hero-blob {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.7), transparent 42%),
+    linear-gradient(135deg, #d9ccff 0%, #c4b5fd 45%, #a78bfa 100%);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d9ccff transparent;
+}
