@@ -49,10 +49,23 @@ function itemsFor(role?: UserRole) {
   ];
 }
 
+import { useQuery } from "@tanstack/react-query";
+import { conversationService } from "../../services/conversation.service";
+import { queryKeys } from "../../lib/queryKeys";
+
 export function DashboardLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
   const items = itemsFor(user?.role);
+
+  const unreadQuery = useQuery({
+    queryKey: queryKeys.unreadMessagesCount,
+    queryFn: () => conversationService.unreadCount().then((r) => r.data?.totalUnread ?? 0),
+    enabled: Boolean(user?._id),
+    refetchInterval: 30000,
+  });
+
+  const unreadCount = unreadQuery.data ?? 0;
 
   return (
     <div className="flex min-h-screen bg-[#f4f2fb]">
@@ -66,13 +79,20 @@ export function DashboardLayout() {
               end={item.to === "/worker" || item.to === "/employer" || item.to === "/admin"}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white",
+                  "flex items-center justify-between rounded-2xl px-3 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white",
                   isActive && "bg-white/15 text-white",
                 )
               }
             >
-              <item.icon className="h-4 w-4" />
-              {item.label}
+              <div className="flex items-center gap-3">
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </div>
+              {item.to === "/messages" && unreadCount > 0 ? (
+                <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-white">
+                  {unreadCount}
+                </span>
+              ) : null}
             </NavLink>
           ))}
         </nav>
@@ -88,8 +108,13 @@ export function DashboardLayout() {
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-white/80 px-4 py-3 backdrop-blur lg:px-8">
           <p className="font-semibold text-ink lg:hidden">JobVerse</p>
           <div className="ml-auto flex items-center gap-3">
-            <NavLink to="/messages" className="rounded-full p-2 hover:bg-brand-50">
-              <Bell className="h-5 w-5 text-muted" />
+            <NavLink to="/messages" className="relative rounded-full p-2 hover:bg-brand-50" title="Messages">
+              <MessageSquare className="h-5 w-5 text-muted" />
+              {unreadCount > 0 ? (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-bold text-white shadow-xs">
+                  {unreadCount}
+                </span>
+              ) : null}
             </NavLink>
             <div className="flex items-center gap-2">
               <Avatar name={user?.fullName} src={user?.profileImage} />
@@ -105,9 +130,14 @@ export function DashboardLayout() {
             <NavLink
               key={item.to}
               to={item.to}
-              className="whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold text-muted hover:bg-brand-50"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold text-muted hover:bg-brand-50"
             >
               {item.label}
+              {item.to === "/messages" && unreadCount > 0 ? (
+                <span className="rounded-full bg-brand-600 px-1.5 py-0.2 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              ) : null}
             </NavLink>
           ))}
         </nav>

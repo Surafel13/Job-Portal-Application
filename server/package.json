@@ -7,6 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "test": "tsx --test 'src/**/*.test.ts'",
     "seed:category": "tsx src/seeds/category.seed.ts",
     "seed:users": "tsx src/seeds/users.seed.ts",
     "seed:skills": "tsx src/seeds/skills.seed.ts",
@@ -34,6 +35,7 @@
     "multer": "^2.4.0",
     "nodemailer": "^10.0.10",
     "redis": "^6.2.1",
+    "socket.io": "^4.8.4",
     "winston": "^3.19.0",
     "zod": "^4.5.4"
   },
@@ -48,6 +50,7 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^26.4.1",
     "@types/nodemailer": "^8.0.2",
+    "socket.io-client": "^4.8.4",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   }

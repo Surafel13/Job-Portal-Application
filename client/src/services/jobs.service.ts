@@ -16,14 +16,19 @@ export const catalogService = {
     request<Category[]>("get", "/categories", { params: { limit: 100 } }),
   skills: () => request<Skill[]>("get", "/skills", { params: { limit: 100 } }),
   employers: () =>
-    request<Employer[]>("get", "/employers", { params: { page: 1, limit: 100 } }),
+    request<Employer[]>("get", "/employers", {
+      params: { page: 1, limit: 100 },
+    }),
 };
 
 export const jobsService = {
   search: (params: Record<string, unknown>) =>
     request<Job[]>("get", "/search/jobs", { params }).then((res) => ({
       jobs: res.data ?? [],
-      meta: (res.meta ?? {}) as PaginationMeta,
+      meta: {
+        page: typeof res.meta?.page === "number" ? res.meta.page : 1,
+        limit: typeof res.meta?.limit === "number" ? res.meta.limit : 10,
+      } satisfies PaginationMeta,
     })),
 
   semanticSearch: (params: Record<string, unknown>) =>
@@ -60,8 +65,13 @@ export const savedJobsService = {
 
 export const applicationService = {
   my: () => request<Application[]>("get", "/application/my"),
-  create: (jobId: string, payload: { resumeId: string; coverLetter?: string }) =>
-    request<Application>("post", `/application/job/${jobId}`, { data: payload }),
+  create: (
+    jobId: string,
+    payload: { resumeId: string; coverLetter?: string },
+  ) =>
+    request<Application>("post", `/application/job/${jobId}`, {
+      data: payload,
+    }),
   byJob: (jobId: string) =>
     request<Application[]>("get", `/application/job/${jobId}`),
   updateStatus: (id: string, status: string) =>

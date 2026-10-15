@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Bookmark, Briefcase, Clock, MapPin, Share2 } from "lucide-react";
+import { ArrowLeft, Bookmark, Briefcase, Clock, MapPin, MessageSquare, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Badge } from "../components/ui/Badge";
@@ -128,7 +128,14 @@ export function JobDetailsPage() {
                 </div>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              {user?.role === "worker" && (
+                <Link to={`/messages?jobId=${job._id}`}>
+                  <Button variant="outline" className="gap-1.5">
+                    <MessageSquare className="h-4 w-4" /> Message Employer
+                  </Button>
+                </Link>
+              )}
               <Button variant="secondary" onClick={() => save.mutate()}>
                 <Bookmark className="h-4 w-4" /> Save
               </Button>

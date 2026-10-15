@@ -8,17 +8,8 @@ import { formatDate, titleCase } from "../../lib/format";
 import { queryKeys } from "../../lib/queryKeys";
 import { catalogService, jobsService } from "../../services/jobs.service";
 import { useAuthStore } from "../../store/authStore";
-import type { Employer, Job } from "../../types/models";
-
-export function findMyEmployer(employers: Employer[], userId?: string) {
-  if (!userId) return undefined;
-  return employers.find((employer) =>
-    employer.recruiters.some((id) => {
-      if (typeof id === "string") return id === userId;
-      return String((id as { _id?: string })._id ?? id) === userId;
-    }),
-  );
-}
+import { findMyEmployer } from "../../lib/job";
+import type { Job } from "../../types/models";
 
 export function EmployerDashboard() {
   const user = useAuthStore((s) => s.user);

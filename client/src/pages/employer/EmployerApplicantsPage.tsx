@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { Link } from "react-router";
+import { MessageSquare } from "lucide-react";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { EmptyState, Spinner } from "../../components/ui/States";
@@ -8,7 +10,7 @@ import { titleCase } from "../../lib/format";
 import { queryKeys } from "../../lib/queryKeys";
 import { applicationService, catalogService, jobsService } from "../../services/jobs.service";
 import { useAuthStore } from "../../store/authStore";
-import { findMyEmployer } from "./EmployerDashboard";
+import { findMyEmployer } from "../../lib/job";
 import type { ApplicationStatus } from "../../types/models";
 
 const statuses: ApplicationStatus[] = [
@@ -73,7 +75,12 @@ export function EmployerApplicantsPage() {
               <p className="font-bold">Applicant {String(app._id).slice(-6)}</p>
               <Badge>{titleCase(app.status)}</Badge>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Link to={`/messages?applicationId=${app._id}&jobId=${selected}`}>
+                <Button size="sm" variant="outline" className="gap-1.5">
+                  <MessageSquare className="h-3.5 w-3.5" /> Message
+                </Button>
+              </Link>
               {statuses.map((status) => (
                 <Button
                   key={status}

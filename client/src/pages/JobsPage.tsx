@@ -5,7 +5,11 @@ import { motion } from "motion/react";
 import { JobCard } from "../components/jobs/JobCard";
 import { Button } from "../components/ui/Button";
 import { EmptyState, ErrorState, Spinner } from "../components/ui/States";
-import { catalogService, jobsService, savedJobsService } from "../services/jobs.service";
+import {
+  catalogService,
+  jobsService,
+  savedJobsService,
+} from "../services/jobs.service";
 import { queryKeys } from "../lib/queryKeys";
 import { useAuthStore } from "../store/authStore";
 import type { EmploymentType, ExperienceLevel, Job } from "../types/models";
@@ -89,11 +93,18 @@ export function JobsPage() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async ({ jobId, saved: isSaved }: { jobId: string; saved: boolean }) => {
+    mutationFn: async ({
+      jobId,
+      saved: isSaved,
+    }: {
+      jobId: string;
+      saved: boolean;
+    }) => {
       if (isSaved) await savedJobsService.remove(jobId);
       else await savedJobsService.save(jobId);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.savedJobs }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.savedJobs }),
   });
 
   const recommendedIds = new Set(
@@ -108,20 +119,29 @@ export function JobsPage() {
   const jobs = useMemo(() => {
     return (search.data?.jobs ?? []).filter((job) => {
       if (employmentType && job.employmentType !== employmentType) return false;
-      if (experienceLevel && job.experienceLevel !== experienceLevel) return false;
+      if (experienceLevel && job.experienceLevel !== experienceLevel)
+        return false;
       if (categoryId) {
-        const id = typeof job.categoryId === "string" ? job.categoryId : job.categoryId._id;
+        const id =
+          typeof job.categoryId === "string"
+            ? job.categoryId
+            : job.categoryId._id;
         if (id !== categoryId) return false;
       }
       if (workMode === "remote" && !isRemote(job)) return false;
       if (workMode === "onsite" && isRemote(job)) return false;
-      if (location && !job.location.toLowerCase().includes(location.toLowerCase())) {
+      if (
+        location &&
+        !job.location.toLowerCase().includes(location.toLowerCase())
+      ) {
         return false;
       }
       if (
         keyword &&
         !semantic &&
-        !`${job.title} ${job.description}`.toLowerCase().includes(keyword.toLowerCase())
+        !`${job.title} ${job.description}`
+          .toLowerCase()
+          .includes(keyword.toLowerCase())
       ) {
         return false;
       }
@@ -138,21 +158,31 @@ export function JobsPage() {
     semantic,
   ]);
 
-  const total = Number(search.data?.meta.total ?? jobs.length);
+  const total = Number(
+    search.data?.meta && "total" in search.data.meta
+      ? search.data.meta.total
+      : jobs.length,
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
       <div className="overflow-hidden rounded-[2rem] bg-gradient-to-r from-brand-600 via-indigo-500 to-violet-500 p-6 text-white md:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold">Discover {total.toLocaleString()} Jobs</h1>
-            <p className="text-white/80">Find the best opportunities for you.</p>
+            <h1 className="text-3xl font-extrabold">
+              Discover {total.toLocaleString()} Jobs
+            </h1>
+            <p className="text-white/80">
+              Find the best opportunities for you.
+            </p>
           </div>
           <label className="flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm">
             <input
               type="checkbox"
               checked={semantic}
-              onChange={(e) => setFilter("semantic", e.target.checked ? "1" : "")}
+              onChange={(e) =>
+                setFilter("semantic", e.target.checked ? "1" : "")
+              }
             />
             AI semantic search
           </label>
@@ -163,7 +193,10 @@ export function JobsPage() {
         <aside className="h-fit rounded-3xl bg-white p-5 shadow-sm ring-1 ring-line">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-bold">Filters</h2>
-            <button className="text-sm text-brand-600" onClick={() => setParams({})}>
+            <button
+              className="text-sm text-brand-600"
+              onClick={() => setParams({})}
+            >
               Clear all
             </button>
           </div>
@@ -182,7 +215,10 @@ export function JobsPage() {
                 label={type}
                 checked={employmentType === type}
                 onChange={() =>
-                  setFilter("employmentType", employmentType === type ? "" : type)
+                  setFilter(
+                    "employmentType",
+                    employmentType === type ? "" : type,
+                  )
                 }
               />
             ))}
@@ -194,7 +230,10 @@ export function JobsPage() {
                 label={level}
                 checked={experienceLevel === level}
                 onChange={() =>
-                  setFilter("experienceLevel", experienceLevel === level ? "" : level)
+                  setFilter(
+                    "experienceLevel",
+                    experienceLevel === level ? "" : level,
+                  )
                 }
               />
             ))}
@@ -209,12 +248,16 @@ export function JobsPage() {
             <Check
               label="Remote"
               checked={workMode === "remote"}
-              onChange={() => setFilter("workMode", workMode === "remote" ? "" : "remote")}
+              onChange={() =>
+                setFilter("workMode", workMode === "remote" ? "" : "remote")
+              }
             />
             <Check
               label="On-site"
               checked={workMode === "onsite"}
-              onChange={() => setFilter("workMode", workMode === "onsite" ? "" : "onsite")}
+              onChange={() =>
+                setFilter("workMode", workMode === "onsite" ? "" : "onsite")
+              }
             />
           </FilterGroup>
           <FilterGroup label="Category">

@@ -6,7 +6,7 @@ import { Field, Input, Select, Textarea } from "../../components/ui/Input";
 import { queryKeys } from "../../lib/queryKeys";
 import { catalogService, jobsService } from "../../services/jobs.service";
 import { useAuthStore } from "../../store/authStore";
-import { findMyEmployer } from "./EmployerDashboard";
+import { findMyEmployer } from "../../lib/job";
 import type { EducationLevel, EmploymentType, ExperienceLevel } from "../../types/models";
 
 export function PostJobPage() {

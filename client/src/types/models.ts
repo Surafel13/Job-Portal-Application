@@ -221,3 +221,46 @@ export interface SavedJob {
   jobId: string | Job;
   createdAt?: string;
 }
+
+export interface ConversationLastMessage {
+  text: string;
+  senderId: string;
+  createdAt: string;
+}
+
+export interface Conversation {
+  _id: string;
+  participants: User[];
+  jobId?: Job | { _id: string; title: string; location?: string; employmentType?: string };
+  applicationId?: string;
+  lastMessage?: ConversationLastMessage;
+  lastMessageAt?: string;
+  unreadCount?: number;
+  unreadCounts?: Record<string, number>;
+  otherParticipant?: User;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Message {
+  _id: string;
+  conversationId: string;
+  senderId: User | string;
+  recipientId: User | string;
+  content: string;
+  read: boolean;
+  readAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ConversationContact {
+  userId: string;
+  fullName: string;
+  email: string;
+  role: UserRole;
+  profileImage?: string;
+  context?: string;
+  jobId?: string;
+  applicationId?: string;
+}

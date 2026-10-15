@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Github } from "lucide-react";
+import { Code2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router";
@@ -195,7 +195,7 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
               Google
             </Button>
             <Button variant="secondary" onClick={() => setNotice("Social login is not enabled on this API.")}>
-              <Github className="h-4 w-4" /> GitHub
+              <Code2 className="h-4 w-4" /> GitHub
             </Button>
           </div>
           {notice ? <p className="mt-3 text-center text-xs text-muted">{notice}</p> : null}

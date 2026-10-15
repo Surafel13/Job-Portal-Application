@@ -13,6 +13,7 @@ import applicationRouter from "../modules/application/application.route.js"
 import searchJobsRouter from "../modules/search/search.route.js"
 import reportRouter from "../modules/report/report.route.js"
 import notificationRouter from "../modules/notification/notification.route.js"
+import conversationRouter from "../modules/conversation/conversation.route.js"
 
 // admin only
 
@@ -40,6 +41,7 @@ router.use("/application", applicationRouter)
 router.use("/search", searchJobsRouter)
 router.use("/report", reportRouter)
 router.use("/notification", notificationRouter)
+router.use("/conversations", conversationRouter)
 router.use("/admin", AdminRouter)
 router.use("/recommendation", recommendationRouter)
 router.use("/semantic-search", semanticSearchRouter)

@@ -13,4 +13,16 @@ const rateLimitMiddleware: RequestHandler = rateLimit({
     },
 });
 
+export const messageRateLimitMiddleware: RequestHandler = rateLimit({
+    windowMs: 1 * 60 * 1000,
+    limit: 60,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: {
+        success: false,
+        statusCode: 429,
+        message: "You are sending messages too quickly. Please wait a moment.",
+    },
+});
+
 export default rateLimitMiddleware;
