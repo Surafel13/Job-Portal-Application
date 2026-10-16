@@ -17,7 +17,9 @@ export const queryKeys = {
   usersByRole: (role: string) => ["users", "role", role] as const,
   notifications: ["notifications"] as const,
   reports: ["reports"] as const,
-  conversations: (params?: Record<string, unknown>) => ["conversations", params] as const,
+  conversationsAll: ["conversations"] as const,
+  conversations: (params: Record<string, unknown> = {}) =>
+    ["conversations", "list", params] as const,
   conversation: (id: string) => ["conversation", id] as const,
   conversationMessages: (id: string) => ["conversation-messages", id] as const,
   unreadMessagesCount: ["conversations", "unread-count"] as const,

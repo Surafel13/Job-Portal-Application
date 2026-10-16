@@ -46,7 +46,7 @@ export const messageQuerySchema = z
     .object({
         page: z.coerce.number().int().min(1).default(1),
         limit: z.coerce.number().int().min(1).max(100).default(30),
-        before: z.string().datetime({ offset: true }).optional().or(z.string().optional()),
+        before: z.string().trim().min(1).optional(),
     })
     .strict();
 

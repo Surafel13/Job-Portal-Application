@@ -128,14 +128,21 @@ function ApplicationRow({
       <div>
         <Badge tone={tones[app.status]}>{titleCase(app.status)}</Badge>
       </div>
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={app.status === "accepted" || app.status === "rejected" || withdrawing}
-        onClick={onWithdraw}
-      >
-        Withdraw
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Link to={`/messages?applicationId=${app._id}`}>
+          <Button size="sm" variant="secondary">
+            Message
+          </Button>
+        </Link>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={app.status === "accepted" || app.status === "rejected" || withdrawing}
+          onClick={onWithdraw}
+        >
+          Withdraw
+        </Button>
+      </div>
     </div>
   );
 }

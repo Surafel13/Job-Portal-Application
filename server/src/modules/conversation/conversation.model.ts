@@ -38,6 +38,12 @@ const conversationSchema = new Schema<IConversation>(
     },
     {
         timestamps: true,
+        toJSON: {
+            flattenMaps: true,
+        },
+        toObject: {
+            flattenMaps: true,
+        },
     }
 );
 

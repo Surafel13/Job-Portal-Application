@@ -3,20 +3,25 @@ import { getAccessToken } from "./api";
 
 let socketInstance: Socket | null = null;
 
+function resolveSocketUrl(): string {
+  if (import.meta.env.VITE_SOCKET_URL) {
+    return import.meta.env.VITE_SOCKET_URL as string;
+  }
+  if (import.meta.env.VITE_API_URL) {
+    try {
+      return new URL(import.meta.env.VITE_API_URL, window.location.origin).origin;
+    } catch {
+      return window.location.origin;
+    }
+  }
+  return window.location.origin;
+}
+
 export function getSocket(): Socket {
   if (!socketInstance) {
-    const token = getAccessToken();
-
-    // Use current origin so Vite proxy forwards /socket.io to backend
-    const socketUrl =
-      (import.meta.env.VITE_SOCKET_URL as string | undefined) ||
-      (import.meta.env.VITE_API_URL
-        ? new URL(import.meta.env.VITE_API_URL, window.location.origin).origin
-        : window.location.origin);
-
-    socketInstance = io(socketUrl, {
-      auth: {
-        token: token || "",
+    socketInstance = io(resolveSocketUrl(), {
+      auth: (cb) => {
+        cb({ token: getAccessToken() || "" });
       },
       transports: ["websocket", "polling"],
       autoConnect: false,
@@ -24,22 +29,12 @@ export function getSocket(): Socket {
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      withCredentials: true,
     });
 
     socketInstance.on("connect_error", (err) => {
       console.warn("Socket connect error:", err.message);
-      // Update token on retry in case it was refreshed
-      const currentToken = getAccessToken();
-      if (currentToken && socketInstance) {
-        socketInstance.auth = { token: currentToken };
-      }
     });
-  }
-
-  // Update token before connecting
-  const currentToken = getAccessToken();
-  if (currentToken && socketInstance) {
-    socketInstance.auth = { token: currentToken };
   }
 
   return socketInstance;
@@ -47,6 +42,7 @@ export function getSocket(): Socket {
 
 export function disconnectSocket(): void {
   if (socketInstance) {
+    socketInstance.removeAllListeners();
     socketInstance.disconnect();
     socketInstance = null;
   }

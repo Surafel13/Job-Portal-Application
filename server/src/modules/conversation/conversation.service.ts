@@ -11,7 +11,7 @@ import ApplicantModel from "../applicant/applicant.model.js";
 import {
     emitNewMessage,
     emitMessagesRead,
-    emitConversationUpdated,
+    emitConversationUpdatedToUsers,
 } from "../../socket/socket.server.js";
 import type {
     IConversation,
@@ -27,14 +27,26 @@ export class ConversationService {
         return new Types.ObjectId(id);
     }
 
+    private participantId(participant: unknown): string {
+        if (!participant) return "";
+        if (typeof participant === "string") return participant;
+        if (typeof participant === "object" && participant !== null) {
+            const value = participant as { _id?: { toString(): string } };
+            if (value._id) return value._id.toString();
+            if (typeof (participant as { toString(): string }).toString === "function") {
+                return (participant as { toString(): string }).toString();
+            }
+        }
+        return "";
+    }
+
     private verifyUserParticipation(
         conversation: IConversation,
         userId: string
     ): void {
-        const isParticipant = conversation.participants.some((p: any) => {
-            const participantId = p._id ? p._id.toString() : p.toString();
-            return participantId === userId;
-        });
+        const isParticipant = conversation.participants.some(
+            (p) => this.participantId(p) === userId
+        );
 
         if (!isParticipant) {
             throw new ApiError(
@@ -42,6 +54,31 @@ export class ConversationService {
                 "You do not have permission to access this conversation."
             );
         }
+    }
+
+    private unreadCountsToObject(
+        unreadCounts: IConversation["unreadCounts"] | undefined
+    ): Record<string, number> {
+        if (!unreadCounts) return {};
+        if (unreadCounts instanceof Map) {
+            return Object.fromEntries(unreadCounts);
+        }
+        return { ...unreadCounts };
+    }
+
+    private formatConversation(conversation: IConversation, currentUserId: string) {
+        const unreadCountsObj = this.unreadCountsToObject(conversation.unreadCounts);
+        const otherParticipant =
+            (conversation.participants as unknown[])?.find(
+                (p) => this.participantId(p) !== currentUserId
+            ) ?? null;
+
+        return {
+            ...conversation,
+            unreadCounts: unreadCountsObj,
+            unreadCount: unreadCountsObj[currentUserId] || 0,
+            otherParticipant,
+        };
     }
 
     async getOrCreateConversation(
@@ -191,37 +228,12 @@ export class ConversationService {
 
         const pagination = getPagination({ page, limit }, total);
 
-        // Format conversations for the client
-        const formatted = conversations.map((conv: any) => {
-            const unreadCountsObj =
-                conv.unreadCounts instanceof Map
-                    ? Object.fromEntries(conv.unreadCounts)
-                    : conv.unreadCounts || {};
-
-            const otherParticipant = conv.participants?.find(
-                (p: any) => (p._id ? p._id.toString() : p.toString()) !== currentUserId
-            );
-
-            return {
-                ...conv,
-                unreadCount: unreadCountsObj[currentUserId] || 0,
-                otherParticipant: otherParticipant || null,
-            };
-        });
-
-        // Filter by search in-memory if search parameter is provided
-        let resultList = formatted;
-        if (options.search && options.search.trim().length > 0) {
-            const query = options.search.toLowerCase().trim();
-            resultList = formatted.filter((c: any) => {
-                const name = c.otherParticipant?.fullName?.toLowerCase() || "";
-                const jobTitle = (c.jobId as any)?.title?.toLowerCase() || "";
-                return name.includes(query) || jobTitle.includes(query);
-            });
-        }
+        const formatted = conversations.map((conv) =>
+            this.formatConversation(conv, currentUserId)
+        );
 
         return {
-            conversations: resultList,
+            conversations: formatted,
             meta: pagination,
         };
     }
@@ -239,20 +251,7 @@ export class ConversationService {
 
         this.verifyUserParticipation(conversation, currentUserId);
 
-        const unreadCountsObj =
-            conversation.unreadCounts instanceof Map
-                ? Object.fromEntries(conversation.unreadCounts)
-                : conversation.unreadCounts || {};
-
-        const otherParticipant = (conversation.participants as any[])?.find(
-            (p: any) => (p._id ? p._id.toString() : p.toString()) !== currentUserId
-        );
-
-        return {
-            ...conversation,
-            unreadCount: unreadCountsObj[currentUserId] || 0,
-            otherParticipant: otherParticipant || null,
-        };
+        return this.formatConversation(conversation, currentUserId);
     }
 
     async getConversationMessages(
@@ -273,7 +272,11 @@ export class ConversationService {
         const page = Math.max(1, Number(options.page) || 1);
         const skip = (page - 1) * limit;
 
-        const beforeDate = options.before ? new Date(options.before) : undefined;
+        const parsedBefore = options.before ? new Date(options.before) : undefined;
+        const beforeDate =
+            parsedBefore && !Number.isNaN(parsedBefore.getTime())
+                ? parsedBefore
+                : undefined;
 
         const { messages, total } = await messageRepository.findByConversation(
             convOid,
@@ -313,16 +316,14 @@ export class ConversationService {
 
         // Determine recipient
         const recipientParticipant = conversation.participants.find(
-            (p: any) => (p._id ? p._id.toString() : p.toString()) !== currentUserId
+            (p) => this.participantId(p) !== currentUserId
         );
 
         if (!recipientParticipant) {
             throw new ApiError(400, "Recipient not found in conversation.");
         }
 
-        const recipientIdStr = recipientParticipant._id
-            ? recipientParticipant._id.toString()
-            : recipientParticipant.toString();
+        const recipientIdStr = this.participantId(recipientParticipant);
         const recipientOid = new Types.ObjectId(recipientIdStr);
 
         const message = await messageRepository.create({
@@ -352,10 +353,17 @@ export class ConversationService {
 
         const updatedConversation = await conversationRepository.findByIdWithDetails(convOid);
 
-        // Real-time broadcast via Socket.IO
-        emitNewMessage(conversationId, detailedMessage || message, recipientIdStr);
+        emitNewMessage(
+            conversationId,
+            detailedMessage || message,
+            recipientIdStr,
+            currentUserId
+        );
         if (updatedConversation) {
-            emitConversationUpdated(recipientIdStr, updatedConversation);
+            emitConversationUpdatedToUsers(
+                [recipientIdStr, currentUserId],
+                updatedConversation
+            );
         }
 
         return (detailedMessage || message) as IMessage;
@@ -423,7 +431,7 @@ export class ConversationService {
                         if (company?.recruiters) {
                             for (const rec of company.recruiters) {
                                 const recId = rec._id?.toString();
-                                if (recId && !seenUserIds.has(recId)) {
+                                if (recId && rec.fullName && !seenUserIds.has(recId)) {
                                     seenUserIds.add(recId);
                                     contacts.push({
                                         userId: recId,

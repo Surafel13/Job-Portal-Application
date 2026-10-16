@@ -7,7 +7,7 @@ const validate = (
     schema: ZodType,
     target: ValidationTarget
 ): RequestHandler => {
-    return (req, _res, next): void => {
+    return (req, res, next): void => {
         const result = schema.safeParse(req[target]);
 
         if (!result.success) {
@@ -15,7 +15,12 @@ const validate = (
             return;
         }
 
-        req[target] = result.data;
+        if (target === "query") {
+            res.locals.validatedQuery = result.data;
+        } else {
+            req[target] = result.data;
+        }
+
         next();
     };
 };

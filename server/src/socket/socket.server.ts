@@ -140,22 +140,25 @@ export const initSocketServer = (httpServer: HttpServer): Server => {
         });
 
         // Typing indicators
+        const emitTypingIfJoined = (
+            conversationId: string,
+            event: "user_typing" | "user_stop_typing"
+        ) => {
+            if (!conversationId) return;
+            const room = `conversation:${conversationId}`;
+            if (!socket.rooms.has(room)) return;
+            socket.to(room).emit(event, {
+                conversationId,
+                userId,
+            });
+        };
+
         socket.on("typing_start", (conversationId: string) => {
-            if (conversationId) {
-                socket.to(`conversation:${conversationId}`).emit("user_typing", {
-                    conversationId,
-                    userId,
-                });
-            }
+            emitTypingIfJoined(conversationId, "user_typing");
         });
 
         socket.on("typing_stop", (conversationId: string) => {
-            if (conversationId) {
-                socket.to(`conversation:${conversationId}`).emit("user_stop_typing", {
-                    conversationId,
-                    userId,
-                });
-            }
+            emitTypingIfJoined(conversationId, "user_stop_typing");
         });
 
         // Send message via socket
@@ -166,7 +169,16 @@ export const initSocketServer = (httpServer: HttpServer): Server => {
                 callback?: (res: { success: boolean; data?: any; message?: string }) => void
             ) => {
                 try {
-                    const { conversationId, content } = payload;
+                    const conversationId = payload?.conversationId;
+                    const content = payload?.content;
+                    if (!conversationId || typeof content !== "string") {
+                        callback?.({
+                            success: false,
+                            message: "conversationId and content are required",
+                        });
+                        return;
+                    }
+
                     const { conversationService } = await import(
                         "../modules/conversation/conversation.service.js"
                     );
@@ -252,18 +264,20 @@ export const isUserOnline = (userId: string): boolean => {
 export const emitNewMessage = (
     conversationId: string,
     message: any,
-    recipientId: string
+    recipientId: string,
+    senderId?: string
 ): void => {
     if (!ioInstance) return;
 
     // Emit to conversation room (so anyone currently viewing it receives it)
     ioInstance.to(`conversation:${conversationId}`).emit("new_message", message);
 
-    // Also emit to recipient's personal room for conversation list & notification badge update
-    ioInstance.to(`user:${recipientId}`).emit("conversation_message", {
-        conversationId,
-        message,
-    });
+    const payload = { conversationId, message };
+    ioInstance.to(`user:${recipientId}`).emit("conversation_message", payload);
+
+    if (senderId && senderId !== recipientId) {
+        ioInstance.to(`user:${senderId}`).emit("conversation_message", payload);
+    }
 };
 
 export const emitMessagesRead = (
@@ -287,4 +301,14 @@ export const emitConversationUpdated = (
     if (!ioInstance) return;
 
     ioInstance.to(`user:${userId}`).emit("conversation_updated", conversation);
+};
+
+export const emitConversationUpdatedToUsers = (
+    userIds: string[],
+    conversation: any
+): void => {
+    if (!ioInstance) return;
+    for (const userId of userIds) {
+        emitConversationUpdated(userId, conversation);
+    }
 };

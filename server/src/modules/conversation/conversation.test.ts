@@ -8,6 +8,7 @@ import {
     messageQuerySchema,
     conversationIdParamSchema,
 } from "./conversation.validation.js";
+import { escapeRegex } from "./conversation.repository.js";
 import { ConversationService } from "./conversation.service.js";
 import { ApiError } from "../../utils/ApiError.js";
 import type { IConversation } from "./conversation.interface.js";
@@ -85,6 +86,15 @@ test("Conversation Validation: pagination queries", () => {
         conversationId: "not-an-oid",
     });
     assert.equal(invalidParamRes.success, false);
+
+    const searchQuery = conversationQuerySchema.parse({ search: "  Ada  ", page: "2" });
+    assert.equal(searchQuery.search, "Ada");
+    assert.equal(searchQuery.page, 2);
+});
+
+test("Conversation search: escapeRegex prevents ReDoS/injection metacharacters", () => {
+    assert.equal(escapeRegex("Ada.*"), "Ada\\.\\*");
+    assert.equal(escapeRegex("job (remote)"), "job \\(remote\\)");
 });
 
 test("Conversation Service: Participant Authorization Security Check", () => {

@@ -3,17 +3,69 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getSocket } from "../lib/socket";
 import { useAuthStore } from "../store/authStore";
 import { queryKeys } from "../lib/queryKeys";
-import type { Message } from "../types/models";
+import type { Conversation, Message, User } from "../types/models";
 import type { PaginationMeta } from "../types/api";
+
+function entityId(value: unknown): string | undefined {
+  if (!value) return undefined;
+  if (typeof value === "string") return value;
+  if (typeof value === "object" && value !== null && "_id" in value) {
+    const id = (value as { _id?: unknown })._id;
+    return id == null ? undefined : String(id);
+  }
+  return String(value);
+}
+
+function appendMessage(
+  old: { messages: Message[]; meta?: PaginationMeta } | undefined,
+  message: Message,
+) {
+  if (!old) return { messages: [message], meta: { page: 1, limit: 30 } };
+  const exists = old.messages.some((m) => m._id === message._id);
+  if (exists) return old;
+  return {
+    ...old,
+    messages: [...old.messages, message],
+  };
+}
+
+export function useInboxSocket() {
+  const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const socket = getSocket();
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    const invalidateInbox = () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.conversationsAll });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.unreadMessagesCount });
+    };
+
+    socket.on("conversation_message", invalidateInbox);
+    socket.on("conversation_updated", invalidateInbox);
+
+    return () => {
+      socket.off("conversation_message", invalidateInbox);
+      socket.off("conversation_updated", invalidateInbox);
+    };
+  }, [user?._id, queryClient]);
+}
 
 export function useChatSocket(activeConversationId?: string | null) {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
-  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({}); // userId -> name / placeholder
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeConversationIdRef = useRef(activeConversationId);
+  activeConversationIdRef.current = activeConversationId;
 
   useEffect(() => {
     if (!user?._id) return;
@@ -26,12 +78,14 @@ export function useChatSocket(activeConversationId?: string | null) {
 
     const onConnect = () => {
       setIsConnected(true);
-      // Fetch online users
       socket.emit("get_online_users", (ids: string[]) => {
         if (Array.isArray(ids)) {
           setOnlineUserIds(new Set(ids));
         }
       });
+      if (activeConversationIdRef.current) {
+        socket.emit("join_conversation", activeConversationIdRef.current);
+      }
     };
 
     const onDisconnect = () => {
@@ -60,21 +114,32 @@ export function useChatSocket(activeConversationId?: string | null) {
       });
     };
 
-    // Global conversation message update
     const onConversationMessage = ({
       conversationId,
+      message,
     }: {
       conversationId: string;
       message: Message;
     }) => {
-      // Invalidate conversations list & unread count badge
-      void queryClient.invalidateQueries({ queryKey: queryKeys.conversations() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.conversationsAll });
       void queryClient.invalidateQueries({ queryKey: queryKeys.unreadMessagesCount });
 
-      // If active conversation is not this one, also refetch notifications
-      if (conversationId !== activeConversationId) {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
+      if (conversationId === activeConversationIdRef.current && message) {
+        queryClient.setQueryData(
+          queryKeys.conversationMessages(conversationId),
+          (old: { messages: Message[]; meta?: PaginationMeta } | undefined) =>
+            appendMessage(old, message),
+        );
       }
+    };
+
+    const onConversationUpdated = (conversation: Conversation) => {
+      if (!conversation?._id) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.conversationsAll });
+        return;
+      }
+      queryClient.setQueryData(queryKeys.conversation(conversation._id), conversation);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.conversationsAll });
     };
 
     socket.on("connect", onConnect);
@@ -83,6 +148,7 @@ export function useChatSocket(activeConversationId?: string | null) {
     socket.on("user_online", onUserOnline);
     socket.on("user_offline", onUserOffline);
     socket.on("conversation_message", onConversationMessage);
+    socket.on("conversation_updated", onConversationUpdated);
 
     if (socket.connected) {
       onConnect();
@@ -95,35 +161,23 @@ export function useChatSocket(activeConversationId?: string | null) {
       socket.off("user_online", onUserOnline);
       socket.off("user_offline", onUserOffline);
       socket.off("conversation_message", onConversationMessage);
+      socket.off("conversation_updated", onConversationUpdated);
     };
-  }, [user?._id, activeConversationId, queryClient]);
+  }, [user?._id, queryClient]);
 
-  // Handle active conversation room and events
   useEffect(() => {
     if (!activeConversationId || !user?._id) return;
 
     const socket = getSocket();
-
-    // Join room
     socket.emit("join_conversation", activeConversationId);
 
     const onNewMessage = (message: Message) => {
-      // Optimistically update or invalidate message history for active conversation
       queryClient.setQueryData(
         queryKeys.conversationMessages(activeConversationId),
-        (old: { messages: Message[]; meta?: PaginationMeta } | undefined) => {
-          if (!old) return { messages: [message], meta: { page: 1, limit: 30 } };
-          const exists = old.messages.some((m) => m._id === message._id);
-          if (exists) return old;
-          return {
-            ...old,
-            messages: [...old.messages, message],
-          };
-        },
+        (old: { messages: Message[]; meta?: PaginationMeta } | undefined) =>
+          appendMessage(old, message),
       );
-
-      // Invalidate conversations list to show updated lastMessage
-      void queryClient.invalidateQueries({ queryKey: queryKeys.conversations() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.conversationsAll });
     };
 
     const onMessagesRead = ({
@@ -134,25 +188,23 @@ export function useChatSocket(activeConversationId?: string | null) {
       readerId: string;
       readAt: string;
     }) => {
-      if (conversationId === activeConversationId) {
-        queryClient.setQueryData(
-          queryKeys.conversationMessages(activeConversationId),
-          (old: { messages: Message[]; meta?: PaginationMeta } | undefined) => {
-            if (!old) return old;
-            return {
-              ...old,
-              messages: old.messages.map((m) => {
-                const recipientIdStr =
-                  typeof m.recipientId === "object" ? m.recipientId._id : m.recipientId;
-                if (recipientIdStr === readerId) {
-                  return { ...m, read: true };
-                }
-                return m;
-              }),
-            };
-          },
-        );
-      }
+      if (conversationId !== activeConversationId) return;
+      queryClient.setQueryData(
+        queryKeys.conversationMessages(activeConversationId),
+        (old: { messages: Message[]; meta?: PaginationMeta } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            messages: old.messages.map((m) => {
+              const recipientIdStr = entityId(m.recipientId);
+              if (recipientIdStr === readerId) {
+                return { ...m, read: true, readAt };
+              }
+              return m;
+            }),
+          };
+        },
+      );
     };
 
     const onUserTyping = ({
@@ -198,21 +250,19 @@ export function useChatSocket(activeConversationId?: string | null) {
     };
   }, [activeConversationId, user?._id, queryClient]);
 
-  const emitTyping = useCallback(
-    (conversationId: string) => {
-      const socket = getSocket();
-      socket.emit("typing_start", conversationId);
+  const emitTyping = useCallback((conversationId: string) => {
+    const socket = getSocket();
+    if (!socket.connected) return;
+    socket.emit("typing_start", conversationId);
 
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
 
-      typingTimeoutRef.current = setTimeout(() => {
-        socket.emit("typing_stop", conversationId);
-      }, 2500);
-    },
-    [],
-  );
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("typing_stop", conversationId);
+    }, 2500);
+  }, []);
 
   const emitStopTyping = useCallback((conversationId: string) => {
     if (typingTimeoutRef.current) {
@@ -220,6 +270,7 @@ export function useChatSocket(activeConversationId?: string | null) {
       typingTimeoutRef.current = null;
     }
     const socket = getSocket();
+    if (!socket.connected) return;
     socket.emit("typing_stop", conversationId);
   }, []);
 
@@ -230,11 +281,26 @@ export function useChatSocket(activeConversationId?: string | null) {
     ): Promise<{ success: boolean; data?: Message; message?: string }> => {
       return new Promise((resolve) => {
         const socket = getSocket();
+        if (!socket.connected) {
+          resolve({ success: false, message: "Socket disconnected" });
+          return;
+        }
+
+        let settled = false;
+        const timer = window.setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          resolve({ success: false, message: "Socket timeout" });
+        }, 8000);
+
         socket.emit(
           "send_message",
           { conversationId, content },
           (response: { success: boolean; data?: Message; message?: string }) => {
-            resolve(response);
+            if (settled) return;
+            settled = true;
+            window.clearTimeout(timer);
+            resolve(response ?? { success: false, message: "Empty socket response" });
           },
         );
       });
@@ -244,6 +310,7 @@ export function useChatSocket(activeConversationId?: string | null) {
 
   const markSocketRead = useCallback((conversationId: string) => {
     const socket = getSocket();
+    if (!socket.connected) return;
     socket.emit("mark_read", conversationId);
   }, []);
 
@@ -266,3 +333,14 @@ export function useChatSocket(activeConversationId?: string | null) {
     markSocketRead,
   };
 }
+
+export function otherParticipantOf(
+  conversation: Conversation | undefined,
+  currentUserId?: string,
+): User | undefined {
+  if (!conversation) return undefined;
+  if (conversation.otherParticipant) return conversation.otherParticipant;
+  return conversation.participants?.find((p) => entityId(p) !== currentUserId);
+}
+
+export { entityId };

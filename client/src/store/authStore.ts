@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "../types/models";
 import { clearTokens, setTokens } from "../lib/api";
+import { disconnectSocket } from "../lib/socket";
 
 interface AuthState {
   user: User | null;
@@ -20,6 +21,7 @@ export const useAuthStore = create<AuthState>()(
       },
       setUser: (user) => set({ user }),
       logout: () => {
+        disconnectSocket();
         clearTokens();
         set({ user: null });
       },

@@ -52,11 +52,13 @@ function itemsFor(role?: UserRole) {
 import { useQuery } from "@tanstack/react-query";
 import { conversationService } from "../../services/conversation.service";
 import { queryKeys } from "../../lib/queryKeys";
+import { useInboxSocket } from "../../hooks/useChatSocket";
 
 export function DashboardLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
   const items = itemsFor(user?.role);
+  useInboxSocket();
 
   const unreadQuery = useQuery({
     queryKey: queryKeys.unreadMessagesCount,

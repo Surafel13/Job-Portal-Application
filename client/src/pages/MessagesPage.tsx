@@ -16,7 +16,7 @@ import { Avatar } from "../components/ui/Avatar";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Spinner } from "../components/ui/States";
-import { useChatSocket } from "../hooks/useChatSocket";
+import { entityId, useChatSocket } from "../hooks/useChatSocket";
 import { cn } from "../lib/cn";
 import { formatDate, formatTime, isSameDay, timeAgo, titleCase } from "../lib/format";
 import { queryKeys } from "../lib/queryKeys";
@@ -33,6 +33,7 @@ export function MessagesPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
     searchParams.get("conversationId"),
   );
+  const [searchInput, setSearchInput] = useState("");
   const [searchFilter, setSearchFilter] = useState("");
   const [messageText, setMessageText] = useState("");
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
@@ -53,9 +54,15 @@ export function MessagesPage() {
   } = useChatSocket(selectedConversationId);
 
   // Fetch conversations
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSearchFilter(searchInput.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [searchInput]);
+
   const conversationsQuery = useQuery({
-    queryKey: queryKeys.conversations({ search: searchFilter }),
-    queryFn: () => conversationService.list({ search: searchFilter }),
+    queryKey: queryKeys.conversations(searchFilter ? { search: searchFilter } : {}),
+    queryFn: () =>
+      conversationService.list(searchFilter ? { search: searchFilter } : undefined),
     refetchInterval: 30000,
   });
 
@@ -77,7 +84,7 @@ export function MessagesPage() {
       if (res.data?._id) {
         setSelectedConversationId(res.data._id);
         setShowMobileChat(true);
-        void queryClient.invalidateQueries({ queryKey: queryKeys.conversations() });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.conversationsAll });
         setIsNewChatModalOpen(false);
         // Clear query params to prevent re-triggering
         setSearchParams({ conversationId: res.data._id }, { replace: true });
@@ -85,15 +92,23 @@ export function MessagesPage() {
     },
   });
 
+  const startConversation = startConversationMutation.mutate;
+  const startedFromParamsKey = useRef<string | null>(null);
+
   useEffect(() => {
-    if (recipientParam || jobParam || appParam) {
-      startConversationMutation.mutate({
-        recipientId: recipientParam || undefined,
-        jobId: jobParam || undefined,
-        applicationId: appParam || undefined,
-      });
+    if (!recipientParam && !jobParam && !appParam) {
+      startedFromParamsKey.current = null;
+      return;
     }
-  }, [recipientParam, jobParam, appParam, startConversationMutation]);
+    const key = `${recipientParam ?? ""}:${jobParam ?? ""}:${appParam ?? ""}`;
+    if (startedFromParamsKey.current === key) return;
+    startedFromParamsKey.current = key;
+    startConversation({
+      recipientId: recipientParam || undefined,
+      jobId: jobParam || undefined,
+      applicationId: appParam || undefined,
+    });
+  }, [recipientParam, jobParam, appParam, startConversation]);
 
   // Determine active conversation
   const activeConversation: Conversation | undefined =
@@ -130,18 +145,49 @@ export function MessagesPage() {
   // Mark messages as read when opening conversation
   const markReadMutation = useMutation({
     mutationFn: (convId: string) => conversationService.markRead(convId),
-    onSuccess: () => {
-      markSocketRead(activeId!);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.conversations() });
+    onMutate: (convId) => {
+      queryClient.setQueryData(queryKeys.conversation(convId), (old: Conversation | undefined) =>
+        old ? { ...old, unreadCount: 0 } : old,
+      );
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.conversationsAll },
+        (old: { conversations: Conversation[]; meta?: PaginationMeta } | undefined) => {
+          if (!old?.conversations) return old;
+          return {
+            ...old,
+            conversations: old.conversations.map((conv) =>
+              conv._id === convId ? { ...conv, unreadCount: 0 } : conv,
+            ),
+          };
+        },
+      );
+    },
+    onSuccess: (_data, convId) => {
+      markSocketRead(convId);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.conversationsAll });
       void queryClient.invalidateQueries({ queryKey: queryKeys.unreadMessagesCount });
     },
   });
 
+  const markRead = markReadMutation.mutate;
+  const markingReadIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (activeId && currentConversation && (currentConversation.unreadCount ?? 0) > 0) {
-      markReadMutation.mutate(activeId);
+    if (!activeId) {
+      markingReadIdRef.current = null;
+      return;
     }
-  }, [activeId, currentConversation, markReadMutation]);
+    if ((currentConversation?.unreadCount ?? 0) <= 0) return;
+    if (markingReadIdRef.current === activeId) return;
+    markingReadIdRef.current = activeId;
+    markRead(activeId, {
+      onSettled: () => {
+        if (markingReadIdRef.current === activeId) {
+          markingReadIdRef.current = null;
+        }
+      },
+    });
+  }, [activeId, currentConversation?.unreadCount, markRead]);
 
   // Auto-scroll messages to bottom
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
@@ -189,7 +235,7 @@ export function MessagesPage() {
           },
         );
       }
-      void queryClient.invalidateQueries({ queryKey: queryKeys.conversations() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.conversationsAll });
       setMessageText("");
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
@@ -223,11 +269,31 @@ export function MessagesPage() {
   };
 
   // Resolve other participant
+  const loadOlderMessages = async () => {
+    if (!activeId || !messagesQuery.data?.meta?.hasNextPage) return;
+    const nextPage = (messagesQuery.data.meta.page ?? 1) + 1;
+    const older = await conversationService.messages(activeId, {
+      page: nextPage,
+      limit: messagesQuery.data.meta.limit ?? 30,
+    });
+    queryClient.setQueryData(
+      queryKeys.conversationMessages(activeId),
+      (old: { messages: Message[]; meta?: PaginationMeta } | undefined) => {
+        const existing = old?.messages ?? [];
+        const incoming = older.messages.filter(
+          (msg) => !existing.some((current) => current._id === msg._id),
+        );
+        return {
+          messages: [...incoming, ...existing],
+          meta: older.meta,
+        };
+      },
+    );
+  };
+
   const otherParticipant: User | undefined =
     currentConversation?.otherParticipant ||
-    currentConversation?.participants?.find(
-      (p) => (typeof p === "string" ? p : p._id) !== currentUser?._id,
-    );
+    currentConversation?.participants?.find((p) => entityId(p) !== currentUser?._id);
 
   const otherUserId = otherParticipant?._id;
   const isOtherOnline = otherUserId ? isUserOnline(otherUserId) : false;
@@ -280,13 +346,16 @@ export function MessagesPage() {
             <input
               type="text"
               placeholder="Search conversations…"
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="w-full rounded-2xl bg-white py-1.5 pl-9 pr-4 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
-            {searchFilter ? (
+            {searchInput ? (
               <button
-                onClick={() => setSearchFilter("")}
+                onClick={() => {
+                  setSearchInput("");
+                  setSearchFilter("");
+                }}
                 className="absolute right-3 top-2.5 text-muted hover:text-ink"
               >
                 <X className="h-4 w-4" />
@@ -322,9 +391,7 @@ export function MessagesPage() {
               {conversationList.map((conv) => {
                 const participant =
                   conv.otherParticipant ||
-                  conv.participants?.find(
-                    (p) => (typeof p === "string" ? p : p._id) !== currentUser?._id,
-                  );
+                  conv.participants?.find((p) => entityId(p) !== currentUser?._id);
                 const isOnline = participant?._id ? isUserOnline(participant._id) : false;
                 const isSelected = conv._id === activeId;
                 const unread = conv.unreadCount ?? 0;
@@ -506,9 +573,20 @@ export function MessagesPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {messagesQuery.data?.meta?.hasNextPage ? (
+                    <div className="flex justify-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs"
+                        onClick={() => void loadOlderMessages()}
+                      >
+                        Load earlier messages
+                      </Button>
+                    </div>
+                  ) : null}
                   {messages.map((msg, index) => {
-                    const senderId =
-                      typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId;
+                    const senderId = entityId(msg.senderId);
                     const isMe = senderId === currentUser?._id;
                     const prevMsg = messages[index - 1];
                     const showDateDivider =
