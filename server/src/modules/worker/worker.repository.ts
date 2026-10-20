@@ -39,6 +39,46 @@ export class WorkerRepository {
 
         return result.deletedCount === 1;
     }
+
+    async addResumeId(
+        userId: string | Types.ObjectId,
+        resumeId: Types.ObjectId,
+        profileCompletion: number
+    ): Promise<IWorker | null> {
+        return Worker.findOneAndUpdate(
+            { userId },
+            {
+                $addToSet: { resumeIds: resumeId },
+                $set: { profileCompletion },
+            },
+            {
+                new: true,
+                runValidators: true,
+            }
+        )
+            .lean<IWorker>()
+            .exec();
+    }
+
+    async removeResumeId(
+        userId: string | Types.ObjectId,
+        resumeId: string,
+        profileCompletion: number
+    ): Promise<IWorker | null> {
+        return Worker.findOneAndUpdate(
+            { userId },
+            {
+                $pull: { resumeIds: resumeId },
+                $set: { profileCompletion },
+            },
+            {
+                new: true,
+                runValidators: true,
+            }
+        )
+            .lean<IWorker>()
+            .exec();
+    }
 }
 
 export default WorkerRepository;

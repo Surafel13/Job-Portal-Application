@@ -9,14 +9,19 @@ import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { AuthPage } from "./pages/auth/AuthPage";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { EmployerApplicantsPage } from "./pages/employer/EmployerApplicantsPage";
+import { ApplicationDetailPage } from "./pages/employer/ApplicationDetailPage";
 import { EmployerDashboard } from "./pages/employer/EmployerDashboard";
 import { PostJobPage } from "./pages/employer/PostJobPage";
+import { WorkerOverviewPage } from "./pages/employer/WorkerOverviewPage";
 import { NotFoundPage, ServerErrorPage } from "./pages/ErrorPages";
 import { JobDetailsPage } from "./pages/JobDetailsPage";
 import { JobsPage } from "./pages/JobsPage";
 import { LandingPage } from "./pages/LandingPage";
 import { MessagesPage } from "./pages/MessagesPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { InProgressPage } from "./pages/super-admin/InProgressPage";
+import { SuperAdminOverview } from "./pages/super-admin/SuperAdminOverview";
+import { UserRoleManagementPage } from "./pages/super-admin/UserRoleManagementPage";
 import { ApplicationsPage } from "./pages/worker/ApplicationsPage";
 import { WorkerDashboard } from "./pages/worker/WorkerDashboard";
 import { WorkerProfilePage } from "./pages/worker/WorkerProfilePage";
@@ -50,7 +55,18 @@ export default function App() {
         <Route element={<DashboardLayout />}>
           <Route path="/employer" element={<EmployerDashboard />} />
           <Route path="/employer/jobs/new" element={<PostJobPage />} />
-          <Route path="/employer/applicants" element={<EmployerApplicantsPage />} />
+          <Route
+            path="/employer/applicants"
+            element={<EmployerApplicantsPage />}
+          />
+          <Route
+            path="/employer/applications/:applicationId"
+            element={<ApplicationDetailPage />}
+          />
+          <Route
+            path="/employer/workers/:userId"
+            element={<WorkerOverviewPage />}
+          />
           <Route path="/employer/settings" element={<SettingsPage />} />
         </Route>
       </Route>
@@ -62,6 +78,36 @@ export default function App() {
           <Route path="/admin/companies" element={<AdminCompaniesPage />} />
           <Route path="/admin/jobs" element={<AdminJobsPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute roles={["superAdmin"]} />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/super-admin" element={<SuperAdminOverview />} />
+          <Route
+            path="/super-admin/users"
+            element={<UserRoleManagementPage />}
+          />
+          <Route
+            path="/super-admin/jobs"
+            element={<InProgressPage pageKey="jobs" />}
+          />
+          <Route
+            path="/super-admin/categories"
+            element={<InProgressPage pageKey="categories" />}
+          />
+          <Route
+            path="/super-admin/reports"
+            element={<InProgressPage pageKey="reports" />}
+          />
+          <Route
+            path="/super-admin/audit-logs"
+            element={<InProgressPage pageKey="audit-logs" />}
+          />
+          <Route
+            path="/super-admin/settings"
+            element={<InProgressPage pageKey="settings" />}
+          />
         </Route>
       </Route>
 

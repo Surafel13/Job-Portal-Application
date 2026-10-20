@@ -14,6 +14,10 @@ export class ApplicationRepository {
             .populate("resumeId");
     }
 
+    async findRawById(id: string) {
+        return Application.findById(id);
+    }
+
     async findByApplicantAndJob(
         applicantId: string,
         jobId: string
@@ -21,6 +25,12 @@ export class ApplicationRepository {
         return Application.findOne({
             applicantId: new Types.ObjectId(applicantId),
             jobId: new Types.ObjectId(jobId),
+        });
+    }
+
+    async countByResumeId(resumeId: string): Promise<number> {
+        return Application.countDocuments({
+            resumeId: new Types.ObjectId(resumeId),
         });
     }
 
@@ -37,7 +47,13 @@ export class ApplicationRepository {
         return Application.find({
             jobId: new Types.ObjectId(jobId),
         })
-            .populate("applicantId")
+            .populate({
+                path: "applicantId",
+                populate: {
+                    path: "userId",
+                    select: "fullName email phone profileImage bio location role status",
+                },
+            })
             .populate("resumeId")
             .sort({ createdAt: -1 });
     }

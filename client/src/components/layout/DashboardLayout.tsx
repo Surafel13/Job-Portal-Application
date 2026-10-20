@@ -10,16 +10,28 @@ import {
   Shield,
   UserRound,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import { NavLink, Outlet } from "react-router";
 import { Logo } from "./Logo";
 import { Avatar } from "../ui/Avatar";
 import { useAuthStore } from "../../store/authStore";
 import { useLogout } from "../../hooks/useAuth";
+import { superAdminNav } from "../../config/superAdminNav";
 import { cn } from "../../lib/cn";
 import type { UserRole } from "../../types/models";
 
-function itemsFor(role?: UserRole) {
+interface NavItem {
+  to: string;
+  icon: LucideIcon;
+  label: string;
+  /** Page exists but is still a placeholder */
+  soon?: boolean;
+}
+
+const ROOT_PATHS = ["/worker", "/employer", "/admin", "/super-admin"];
+
+function itemsFor(role?: UserRole): NavItem[] {
   if (role === "employer") {
     return [
       { to: "/employer", icon: LayoutDashboard, label: "Dashboard" },
@@ -29,7 +41,15 @@ function itemsFor(role?: UserRole) {
       { to: "/employer/settings", icon: Settings, label: "Settings" },
     ];
   }
-  if (role === "admin" || role === "superAdmin") {
+  if (role === "superAdmin") {
+    return superAdminNav.map((item) => ({
+      to: item.to,
+      icon: item.icon,
+      label: item.label,
+      soon: !item.ready,
+    }));
+  }
+  if (role === "admin") {
     return [
       { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
       { to: "/admin/users", icon: Users, label: "Users" },
@@ -49,25 +69,10 @@ function itemsFor(role?: UserRole) {
   ];
 }
 
-import { useQuery } from "@tanstack/react-query";
-import { conversationService } from "../../services/conversation.service";
-import { queryKeys } from "../../lib/queryKeys";
-import { useInboxSocket } from "../../hooks/useChatSocket";
-
 export function DashboardLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
   const items = itemsFor(user?.role);
-  useInboxSocket();
-
-  const unreadQuery = useQuery({
-    queryKey: queryKeys.unreadMessagesCount,
-    queryFn: () => conversationService.unreadCount().then((r) => r.data?.totalUnread ?? 0),
-    enabled: Boolean(user?._id),
-    refetchInterval: 30000,
-  });
-
-  const unreadCount = unreadQuery.data ?? 0;
 
   return (
     <div className="flex min-h-screen bg-[#f4f2fb]">
@@ -78,21 +83,19 @@ export function DashboardLayout() {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === "/worker" || item.to === "/employer" || item.to === "/admin"}
+              end={ROOT_PATHS.includes(item.to)}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center justify-between rounded-2xl px-3 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white",
+                  "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white",
                   isActive && "bg-white/15 text-white",
                 )
               }
             >
-              <div className="flex items-center gap-3">
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </div>
-              {item.to === "/messages" && unreadCount > 0 ? (
-                <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-white">
-                  {unreadCount}
+              <item.icon className="h-4 w-4" />
+              {item.label}
+              {item.soon ? (
+                <span className="ml-auto rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold">
+                  Soon
                 </span>
               ) : null}
             </NavLink>
@@ -110,13 +113,11 @@ export function DashboardLayout() {
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-white/80 px-4 py-3 backdrop-blur lg:px-8">
           <p className="font-semibold text-ink lg:hidden">JobVerse</p>
           <div className="ml-auto flex items-center gap-3">
-            <NavLink to="/messages" className="relative rounded-full p-2 hover:bg-brand-50" title="Messages">
-              <MessageSquare className="h-5 w-5 text-muted" />
-              {unreadCount > 0 ? (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-bold text-white shadow-xs">
-                  {unreadCount}
-                </span>
-              ) : null}
+            <NavLink
+              to="/messages"
+              className="rounded-full p-2 hover:bg-brand-50"
+            >
+              <Bell className="h-5 w-5 text-muted" />
             </NavLink>
             <div className="flex items-center gap-2">
               <Avatar name={user?.fullName} src={user?.profileImage} />
@@ -132,14 +133,11 @@ export function DashboardLayout() {
             <NavLink
               key={item.to}
               to={item.to}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold text-muted hover:bg-brand-50"
+              end={ROOT_PATHS.includes(item.to)}
+              className="whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold text-muted hover:bg-brand-50"
             >
               {item.label}
-              {item.to === "/messages" && unreadCount > 0 ? (
-                <span className="rounded-full bg-brand-600 px-1.5 py-0.2 text-[10px] font-bold text-white">
-                  {unreadCount}
-                </span>
-              ) : null}
+              {item.soon ? " · Soon" : ""}
             </NavLink>
           ))}
         </nav>

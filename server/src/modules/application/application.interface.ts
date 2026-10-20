@@ -14,7 +14,7 @@ export interface IApplication {
     applicantId: Types.ObjectId;
     jobId: Types.ObjectId;
     coverLetter?: string;
-    resumeId?: Types.ObjectId;
+    resumeId: Types.ObjectId;
     status: ApplicationStatus;
     appliedAt?: Date;
     createdAt?: Date;

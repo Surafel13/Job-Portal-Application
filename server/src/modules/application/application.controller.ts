@@ -79,7 +79,8 @@ class ApplicationController {
             const application =
                 await this.applicationService.updateApplicationStatus(
                     req.params.id as string,
-                    req.body.status
+                    req.body.status,
+                    req.user!.userId
                 );
 
             sendResponse(

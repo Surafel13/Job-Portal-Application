@@ -8,6 +8,7 @@ import {
     deleteResume,
     getMyResumeById,
     getMyResumes,
+    replaceResume,
     uploadResume,
 } from "./resume.controller.js";
 import {
@@ -33,6 +34,13 @@ router.get(
     "/:id",
     validateParams(resumeIdParamSchema),
     asyncHandler(getMyResumeById)
+);
+
+router.patch(
+    "/:id",
+    resumeUpload.single("resume"),
+    validateParams(resumeIdParamSchema),
+    asyncHandler(replaceResume)
 );
 
 router.delete(

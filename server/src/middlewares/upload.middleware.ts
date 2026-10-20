@@ -1,13 +1,11 @@
 import { extname } from "node:path";
 import multer from "multer";
 import { ApiError } from "../utils/ApiError.js";
-
-const allowedMimeTypes = [
-    "application/pdf",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
-
-const allowedExtensions = [".pdf", ".docx"];
+import {
+    ALLOWED_RESUME_EXTENSIONS,
+    ALLOWED_RESUME_MIME_TYPES,
+    MAX_RESUME_SIZE_BYTES,
+} from "../modules/resume/resume.constants.js";
 
 const resumeUpload = multer({
     storage: multer.memoryStorage(),
@@ -15,8 +13,12 @@ const resumeUpload = multer({
         const extension = extname(file.originalname).toLowerCase();
 
         if (
-            !allowedMimeTypes.includes(file.mimetype) ||
-            !allowedExtensions.includes(extension)
+            !ALLOWED_RESUME_MIME_TYPES.includes(
+                file.mimetype as (typeof ALLOWED_RESUME_MIME_TYPES)[number]
+            ) ||
+            !ALLOWED_RESUME_EXTENSIONS.includes(
+                extension as (typeof ALLOWED_RESUME_EXTENSIONS)[number]
+            )
         ) {
             callback(
                 new ApiError(400, "Only PDF and DOCX resume files are allowed.")
@@ -27,7 +29,7 @@ const resumeUpload = multer({
         callback(null, true);
     },
     limits: {
-        fileSize: 5 * 1024 * 1024,
+        fileSize: MAX_RESUME_SIZE_BYTES,
         files: 1,
     },
 });

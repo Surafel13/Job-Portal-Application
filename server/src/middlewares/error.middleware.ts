@@ -61,7 +61,24 @@ const errorMiddleware: ErrorRequestHandler = (
     if (error instanceof multer.MulterError) {
         res.status(400).json({
             success: false,
-            message: error.message,
+            message:
+                error.code === "LIMIT_FILE_SIZE"
+                    ? "Resume file must be 5MB or smaller."
+                    : error.message,
+            errors: [],
+        });
+        return;
+    }
+
+    if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code: number }).code === 11000
+    ) {
+        res.status(409).json({
+            success: false,
+            message: "Duplicate resource",
             errors: [],
         });
         return;

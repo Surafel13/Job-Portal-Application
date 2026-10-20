@@ -28,6 +28,12 @@ export const jobsService = {
       meta: {
         page: typeof res.meta?.page === "number" ? res.meta.page : 1,
         limit: typeof res.meta?.limit === "number" ? res.meta.limit : 10,
+        total:
+          typeof res.meta?.total === "number"
+            ? res.meta.total
+            : typeof res.meta?.totalItems === "number"
+              ? res.meta.totalItems
+              : undefined,
       } satisfies PaginationMeta,
     })),
 
@@ -84,10 +90,19 @@ export const applicationService = {
 
 export const resumeService = {
   list: () => request<Resume[]>("get", "/resumes"),
+  getById: (id: string) => request<Resume>("get", `/resumes/${id}`),
   upload: (file: File) => {
     const form = new FormData();
     form.append("resume", file);
     return request<Resume>("post", "/resumes", {
+      data: form,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  replace: (id: string, file: File) => {
+    const form = new FormData();
+    form.append("resume", file);
+    return request<Resume>("patch", `/resumes/${id}`, {
       data: form,
       headers: { "Content-Type": "multipart/form-data" },
     });

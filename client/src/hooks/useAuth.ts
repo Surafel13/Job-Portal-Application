@@ -8,7 +8,8 @@ import type { UserRole } from "../types/models";
 
 export function dashboardPath(role?: UserRole) {
   if (role === "employer") return "/employer";
-  if (role === "admin" || role === "superAdmin") return "/admin";
+  if (role === "superAdmin") return "/super-admin";
+  if (role === "admin") return "/admin";
   return "/worker";
 }
 

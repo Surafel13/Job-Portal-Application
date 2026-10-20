@@ -65,7 +65,10 @@ export function useChatSocket(activeConversationId?: string | null) {
 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeConversationIdRef = useRef(activeConversationId);
-  activeConversationIdRef.current = activeConversationId;
+
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
 
   useEffect(() => {
     if (!user?._id) return;
@@ -183,6 +186,7 @@ export function useChatSocket(activeConversationId?: string | null) {
     const onMessagesRead = ({
       conversationId,
       readerId,
+      readAt,
     }: {
       conversationId: string;
       readerId: string;

@@ -1,4 +1,4 @@
-import type { Types } from "mongoose";
+import { Types } from "mongoose";
 import Employer from "./employer.model.js";
 import type { IEmployer } from "./employer.interface.js";
 
@@ -16,6 +16,16 @@ export class EmployerRepository {
 
     async findByName(name: string): Promise<IEmployer | null> {
         return Employer.findOne({ name })
+            .lean<IEmployer>()
+            .exec();
+    }
+
+    async findByRecruiterId(
+        userId: string | Types.ObjectId
+    ): Promise<IEmployer | null> {
+        return Employer.findOne({
+            recruiters: new Types.ObjectId(userId),
+        })
             .lean<IEmployer>()
             .exec();
     }

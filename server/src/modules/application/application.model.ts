@@ -21,6 +21,7 @@ const applicationSchema = new Schema<IApplication>(
         coverLetter: {
             type: String,
             trim: true,
+            maxlength: 5000,
         },
         status: {
             type: String,

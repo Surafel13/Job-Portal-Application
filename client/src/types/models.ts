@@ -126,12 +126,27 @@ export interface Resume {
   createdAt?: string;
 }
 
+export interface Applicant {
+  _id: string;
+  userId: string | User;
+  resumeId?: string | Resume;
+  skills?: string[];
+  experience?: number;
+  education?: string;
+  bio?: string;
+  phone?: string;
+  location?: string;
+  status: "active" | "inactive" | "blocked";
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Application {
   _id: string;
-  applicantId: string | Record<string, unknown>;
+  applicantId: string | Applicant;
   jobId: string | Job;
   coverLetter?: string;
-  resumeId?: string | Resume;
+  resumeId: string | Resume;
   status: ApplicationStatus;
   appliedAt?: string;
   createdAt?: string;
@@ -154,11 +169,18 @@ export interface WorkerProfile {
     institution: string;
     degree: string;
     fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    description?: string;
   }>;
   experience: Array<{
     company: string;
     jobTitle: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
     isCurrent: boolean;
+    description?: string;
   }>;
   location?: string;
   preferredJobTypes: EmploymentType[];
@@ -166,11 +188,14 @@ export interface WorkerProfile {
   preferredWorkTypes: Array<"onsite" | "remote" | "hybrid">;
   minimumSalary?: number;
   maximumSalary?: number;
+  availableFrom?: string;
   resumeIds: string[];
   profileCompletion: number;
   website?: string;
   linkedin?: string;
   github?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Notification {

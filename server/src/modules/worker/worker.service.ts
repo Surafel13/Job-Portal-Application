@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { ApiError } from "../../utils/ApiError.js";
 import type { IWorker } from "./worker.interface.js";
 import WorkerRepository from "./worker.repository.js";
+import { calculateWorkerProfileCompletion } from "./worker.completion.js";
 import type {
     CreateWorkerInput,
     UpdateWorkerInput,
@@ -16,7 +17,7 @@ export class WorkerService {
         userId: string | undefined,
         data: CreateWorkerInput | UpdateWorkerInput
     ): Partial<IWorker> {
-        const { skills, resumeIds, ...workerData } = data;
+        const { skills, categoryIds, ...workerData } = data;
 
         return {
             ...workerData,
@@ -28,10 +29,10 @@ export class WorkerService {
                     })),
                 }
                 : {}),
-            ...(resumeIds
+            ...(categoryIds
                 ? {
-                    resumeIds: resumeIds.map(
-                        (resumeId) => new Types.ObjectId(resumeId)
+                    categoryIds: categoryIds.map(
+                        (categoryId) => new Types.ObjectId(categoryId)
                     ),
                 }
                 : {}),
@@ -52,6 +53,18 @@ export class WorkerService {
         }
 
         const workerData = this.formatWorkerData(userId, data) as IWorker;
+        workerData.resumeIds = workerData.resumeIds ?? [];
+        workerData.profileCompletion = calculateWorkerProfileCompletion({
+            ...workerData,
+            skills: workerData.skills ?? [],
+            categoryIds: workerData.categoryIds ?? [],
+            education: workerData.education ?? [],
+            experience: workerData.experience ?? [],
+            preferredJobTypes: workerData.preferredJobTypes ?? [],
+            preferredLocations: workerData.preferredLocations ?? [],
+            preferredWorkTypes: workerData.preferredWorkTypes ?? [],
+            resumeIds: workerData.resumeIds,
+        });
 
         return this.workerRepository.create(workerData);
     }
@@ -89,6 +102,14 @@ export class WorkerService {
             );
         }
 
+        const mergedWorker: IWorker = {
+            ...existingWorker,
+            ...workerData,
+        };
+
+        workerData.profileCompletion =
+            calculateWorkerProfileCompletion(mergedWorker);
+
         const worker = await this.workerRepository.updateByUserId(
             userId,
             workerData
@@ -115,3 +136,5 @@ export const workerService = new WorkerService(
 );
 
 export default workerService;
+
+

@@ -8,6 +8,10 @@ import type {
 
 export const workerService = {
   me: () => request<WorkerProfile>("get", "/workers/me"),
+  byUserId: (userId: string) =>
+    request<WorkerProfile>("get", `/workers/${userId}`),
+  create: (payload: Record<string, unknown>) =>
+    request<WorkerProfile>("post", "/workers", { data: payload }),
   update: (payload: Record<string, unknown>) =>
     request<WorkerProfile>("patch", "/workers/me", { data: payload }),
 };
@@ -59,6 +63,7 @@ export const reportService = {
 };
 
 export const userService = {
+  byId: (id: string) => request<User>("get", `/users/${id}`),
   update: (id: string, payload: Record<string, unknown>) =>
     request<User>("patch", `/users/${id}`, { data: payload }),
 };

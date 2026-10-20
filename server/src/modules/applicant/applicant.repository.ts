@@ -37,4 +37,12 @@ export class ApplicantRepository {
     async deleteById(id: string) {
         return Applicant.findByIdAndDelete(id);
     }
+
+    async existsByResumeId(resumeId: string): Promise<boolean> {
+        const applicant = await Applicant.exists({
+            resumeId: new Types.ObjectId(resumeId),
+        });
+
+        return applicant !== null;
+    }
 }

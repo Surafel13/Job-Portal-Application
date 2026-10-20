@@ -13,6 +13,8 @@ export const queryKeys = {
   employers: ["employers"] as const,
   employerJobs: (id: string) => ["jobs", "company", id] as const,
   jobApplications: (jobId: string) => ["applications", "job", jobId] as const,
+  workerProfile: (userId: string) => ["worker", "profile", userId] as const,
+  userProfile: (userId: string) => ["user", "profile", userId] as const,
   adminDashboard: ["admin", "dashboard"] as const,
   usersByRole: (role: string) => ["users", "role", role] as const,
   notifications: ["notifications"] as const,

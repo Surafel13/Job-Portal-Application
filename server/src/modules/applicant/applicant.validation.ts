@@ -1,40 +1,38 @@
 import { z } from "zod";
 
-export const createApplicantSchema = z.object({
-    body: z.object({
-        resumeId: z.string().min(1, "Resume ID is required"),
-        skills: z.array(
-            z.string().min(1, "Skill ID is required")
-        ).optional(),
-        experience: z.number().min(0).optional(),
-        education: z.string().trim().optional(),
-        bio: z.string().trim().optional(),
-        phone: z.string().trim().optional(),
-        location: z.string().trim().optional(),
-    }),
-});
+const objectIdSchema = z
+    .string()
+    .regex(/^[0-9a-fA-F]{24}$/, "Invalid ID.");
 
-export const updateApplicantSchema = z.object({
-    body: z.object({
-        resumeId: z.string().min(1).optional(),
-        skills: z.array(
-            z.string().min(1, "Skill ID is required")
-        ).optional(),
+export const createApplicantSchema = z
+    .object({
+        resumeId: objectIdSchema,
+        skills: z.array(objectIdSchema).optional(),
         experience: z.number().min(0).optional(),
         education: z.string().trim().optional(),
         bio: z.string().trim().optional(),
         phone: z.string().trim().optional(),
         location: z.string().trim().optional(),
-        status: z.enum([
-            "active",
-            "inactive",
-            "blocked",
-        ]).optional(),
-    }),
-});
+    })
+    .strict();
+
+export const updateApplicantSchema = z
+    .object({
+        resumeId: objectIdSchema.optional(),
+        skills: z.array(objectIdSchema).optional(),
+        experience: z.number().min(0).optional(),
+        education: z.string().trim().optional(),
+        bio: z.string().trim().optional(),
+        phone: z.string().trim().optional(),
+        location: z.string().trim().optional(),
+        status: z.enum(["active", "inactive", "blocked"]).optional(),
+    })
+    .strict()
+    .refine(
+        (data) => Object.keys(data).length > 0,
+        "At least one field is required for update."
+    );
 
 export const applicantIdSchema = z.object({
-    params: z.object({
-        id: z.string().min(1, "Applicant ID is required"),
-    }),
+    id: objectIdSchema,
 });

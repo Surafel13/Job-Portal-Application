@@ -32,6 +32,7 @@ const experienceSchema = z.object({
 const workerProfileSchema = z.object({
     professionalSummary: z.string().trim().max(2000).optional(),
     skills: z.array(workerSkillSchema).optional(),
+    categoryIds: z.array(objectIdSchema).optional(),
     education: z.array(educationSchema).optional(),
     experience: z.array(experienceSchema).optional(),
     location: z.string().trim().max(150).optional(),
@@ -44,7 +45,6 @@ const workerProfileSchema = z.object({
     ).optional(),
     minimumSalary: z.number().min(0).optional(),
     maximumSalary: z.number().min(0).optional(),
-    resumeIds: z.array(objectIdSchema).optional(),
     availableFrom: z.coerce.date().optional(),
     website: z.string().url("Invalid website URL.").optional(),
     linkedin: z.string().url("Invalid LinkedIn URL.").optional(),

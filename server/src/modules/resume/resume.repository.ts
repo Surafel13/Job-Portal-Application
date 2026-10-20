@@ -20,6 +20,22 @@ export class ResumeRepository {
             .exec();
     }
 
+    async updateById(
+        id: string,
+        data: Partial<IResume>
+    ): Promise<IResume | null> {
+        return Resume.findByIdAndUpdate(
+            id,
+            { $set: data },
+            {
+                new: true,
+                runValidators: true,
+            }
+        )
+            .lean<IResume>()
+            .exec();
+    }
+
     async deleteById(id: string): Promise<IResume | null> {
         return Resume.findByIdAndDelete(id)
             .lean<IResume>()

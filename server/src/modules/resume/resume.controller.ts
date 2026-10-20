@@ -52,6 +52,25 @@ export const getMyResumeById = async (
     sendResponse(res, 200, "Resume retrieved successfully.", resume);
 };
 
+export const replaceResume = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const file = req.file;
+
+    if (!file) {
+        throw new ApiError(400, "Resume file is required.");
+    }
+
+    const resume = await resumeService.replaceResume(
+        getAuthenticatedUserId(req),
+        req.params.id as string,
+        file
+    );
+
+    sendResponse(res, 200, "Resume replaced successfully.", resume);
+};
+
 export const deleteResume = async (
     req: Request,
     res: Response

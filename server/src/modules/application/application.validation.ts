@@ -1,14 +1,23 @@
 import { z } from "zod";
 
-export const createApplicationSchema = z.object({
-    body: z.object({
-        resumeId: z.string().min(1, "Resume ID is required"),
-        coverLetter: z.string().trim().optional(),
-    }),
-});
+const objectIdSchema = z
+    .string()
+    .regex(/^[0-9a-fA-F]{24}$/, "Invalid ID.");
 
-export const updateApplicationStatusSchema = z.object({
-    body: z.object({
+export const createApplicationSchema = z
+    .object({
+        resumeId: objectIdSchema,
+        coverLetter: z
+            .string()
+            .trim()
+            .max(5000, "Cover letter cannot exceed 5000 characters.")
+            .optional()
+            .transform((value) => (value ? value : undefined)),
+    })
+    .strict();
+
+export const updateApplicationStatusSchema = z
+    .object({
         status: z.enum([
             "pending",
             "reviewing",
@@ -16,19 +25,19 @@ export const updateApplicationStatusSchema = z.object({
             "interview",
             "accepted",
             "rejected",
-            "withdrawn",
         ]),
-    }),
-});
+    })
+    .strict();
 
 export const applicationIdSchema = z.object({
-    params: z.object({
-        id: z.string().min(1, "Application ID is required"),
-    }),
+    id: objectIdSchema,
 });
 
 export const jobIdSchema = z.object({
-    params: z.object({
-        jobId: z.string().min(1, "Job ID is required"),
-    }),
+    jobId: objectIdSchema,
 });
+
+export type CreateApplicationInput = {
+    resumeId: string;
+    coverLetter?: string;
+};
