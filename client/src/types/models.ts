@@ -16,6 +16,31 @@ export interface User {
   updatedAt?: string;
 }
 
+export type ReportStatus = "pending" | "reviewing" | "resolved" | "rejected";
+export type ReportResourceType = "user" | "employer" | "job" | "content";
+
+export interface PersonRef {
+  _id: string;
+  fullName?: string;
+  email?: string;
+  role?: string;
+}
+
+export interface Report {
+  _id: string;
+  reporterId: string | PersonRef;
+  resourceType: ReportResourceType;
+  resourceId: string;
+  reason: string;
+  description?: string;
+  status: ReportStatus;
+  adminId?: string | PersonRef;
+  adminDecision?: string;
+  reviewedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface AuthPayload {
   user: User;
   accessToken: string;

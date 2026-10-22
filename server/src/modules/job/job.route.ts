@@ -23,7 +23,7 @@ const router = Router();
 router.post(
     "/",
     authMiddleware,
-    authorizeRoles("employer", "admin"),
+    authorizeRoles("employer"),
     validateBody(createJobSchema),
     asyncHandler(jobController.createJob.bind(jobController))
 );
@@ -59,18 +59,18 @@ router.get(
 );
 
 router.patch(
-    "/:id",
-    authMiddleware,
-    authorizeRoles("employer", "admin"),
-    validateParams(jobIdParamSchema),
-    validateBody(updateJobSchema),
-    asyncHandler(jobController.updateJob.bind(jobController))
+  "/:id",
+  authMiddleware,
+  authorizeRoles("employer", "admin", "superAdmin"),
+  validateParams(jobIdParamSchema),
+  validateBody(updateJobSchema),
+  asyncHandler(jobController.updateJob.bind(jobController)),
 );
 
 router.patch(
     "/status/:id",
     authMiddleware,
-    authorizeRoles("employer", "admin"),
+    authorizeRoles("employer", "admin", "superAdmin"),
     validateParams(jobIdParamSchema),
     validateBody(updateJobStatusSchema),
     asyncHandler(
@@ -87,11 +87,11 @@ router.patch(
 );
 
 router.delete(
-    "/:id",
-    authMiddleware,
-    authorizeRoles("employer", "admin"),
-    validateParams(jobIdParamSchema),
-    asyncHandler(jobController.deleteJob.bind(jobController))
+  "/:id",
+  authMiddleware,
+  authorizeRoles("employer", "admin", "superAdmin"),
+  validateParams(jobIdParamSchema),
+  asyncHandler(jobController.deleteJob.bind(jobController)),
 );
 
 export default router;

@@ -17,6 +17,8 @@ import {
 
 const router = Router();
 
+const moderators = ["admin", "superAdmin"] as const;
+
 router.use(authMiddleware);
 
 router.post(
@@ -34,51 +36,51 @@ router.get(
 
 router.get(
   "/resource/:resourceType/:resourceId",
-  authorizeRoles("admin"),
+  authorizeRoles(...moderators),
   validateParams(resourceParamSchema),
   reportController.getReportsByResource,
 );
 
 router.get(
   "/status",
-  authorizeRoles("admin"),
+  authorizeRoles(...moderators),
   validateQuery(reportStatusQuerySchema),
   reportController.getReportsByStatus,
 );
 
 router.get(
   "/status/count",
-  authorizeRoles("admin"),
+  authorizeRoles(...moderators),
   validateQuery(reportStatusQuerySchema),
   reportController.getReportCountByStatus,
 );
 
 router.get(
   "/resource/:resourceType/:resourceId/count",
-  authorizeRoles("admin"),
+  authorizeRoles(...moderators),
   validateParams(resourceParamSchema),
   reportController.getResourceReportCount,
 );
 
-router.get("/", authorizeRoles("admin"), reportController.getAllReports);
+router.get("/", authorizeRoles(...moderators), reportController.getAllReports);
 
 router.get(
   "/:reportId",
-  authorizeRoles("admin"),
+  authorizeRoles(...moderators),
   validateParams(reportIdParamSchema),
   reportController.getReportById,
 );
 
 router.patch(
   "/:reportId/review",
-  authorizeRoles("admin"),
+  authorizeRoles(...moderators),
   validateParams(reportIdParamSchema),
   reportController.startReview,
 );
 
 router.patch(
   "/:reportId/resolve",
-  authorizeRoles("admin"),
+  authorizeRoles(...moderators),
   validateParams(reportIdParamSchema),
   validateBody(reviewReportSchema),
   reportController.resolveReport,
@@ -86,15 +88,16 @@ router.patch(
 
 router.patch(
   "/:reportId/reject",
-  authorizeRoles("admin"),
+  authorizeRoles(...moderators),
   validateParams(reportIdParamSchema),
   validateBody(reviewReportSchema),
   reportController.rejectReport,
 );
 
+// Destructive: super admins only
 router.delete(
   "/:reportId",
-  authorizeRoles("admin"),
+  authorizeRoles("superAdmin"),
   validateParams(reportIdParamSchema),
   reportController.deleteReport,
 );

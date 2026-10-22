@@ -11,7 +11,6 @@ import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { EmployerApplicantsPage } from "./pages/employer/EmployerApplicantsPage";
 import { ApplicationDetailPage } from "./pages/employer/ApplicationDetailPage";
 import { EmployerDashboard } from "./pages/employer/EmployerDashboard";
-import { PostJobPage } from "./pages/employer/PostJobPage";
 import { WorkerOverviewPage } from "./pages/employer/WorkerOverviewPage";
 import { NotFoundPage, ServerErrorPage } from "./pages/ErrorPages";
 import { JobDetailsPage } from "./pages/JobDetailsPage";
@@ -25,6 +24,8 @@ import { UserRoleManagementPage } from "./pages/super-admin/UserRoleManagementPa
 import { ApplicationsPage } from "./pages/worker/ApplicationsPage";
 import { WorkerDashboard } from "./pages/worker/WorkerDashboard";
 import { WorkerProfilePage } from "./pages/worker/WorkerProfilePage";
+import { AdminReportsPage } from "./pages/admin/AdminReportsPage";
+import { EditJobPage, PostJobPage } from "./pages/employer/PostJobPage";
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
         <Route element={<DashboardLayout />}>
           <Route path="/employer" element={<EmployerDashboard />} />
           <Route path="/employer/jobs/new" element={<PostJobPage />} />
+          <Route path="/employer/jobs/:id/edit" element={<EditJobPage />} />
           <Route
             path="/employer/applicants"
             element={<EmployerApplicantsPage />}
@@ -78,6 +80,8 @@ export default function App() {
           <Route path="/admin/companies" element={<AdminCompaniesPage />} />
           <Route path="/admin/jobs" element={<AdminJobsPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
+          <Route path="/admin/jobs" element={<AdminJobsPage />} />
+          <Route path="/admin/reports" element={<AdminReportsPage />} />
         </Route>
       </Route>
 

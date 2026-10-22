@@ -5,6 +5,7 @@ import type {
   User,
   WorkerProfile,
 } from "../types/models";
+import type{ Report } from "../types/models";
 
 export const workerService = {
   me: () => request<WorkerProfile>("get", "/workers/me"),
@@ -25,7 +26,10 @@ export const applicantService = {
 export const notificationService = {
   my: () => request<Notification[]>("get", "/notification/my"),
   unreadCount: () =>
-    request<{ count?: number } | number>("get", "/notification/my/unread/count"),
+    request<{ count?: number } | number>(
+      "get",
+      "/notification/my/unread/count",
+    ),
   markRead: (id: string) =>
     request<Notification>("patch", `/notification/${id}/read`),
   markAll: () => request<undefined>("patch", "/notification/my/read-all"),
@@ -43,12 +47,10 @@ export const adminService = {
     request<unknown>("patch", `/admin/employers/${id}/verify`),
   rejectEmployer: (id: string) =>
     request<unknown>("patch", `/admin/employers/${id}/reject`),
-  publishJob: (id: string) =>
-    request<unknown>("patch", `/admin/jobs/${id}/publish`),
-  rejectJob: (id: string) =>
-    request<unknown>("patch", `/admin/jobs/${id}/reject`),
-  closeJob: (id: string) =>
-    request<unknown>("patch", `/admin/jobs/${id}/close`),
+  suspendJob: (id: string) =>
+    request<unknown>("patch", `/admin/jobs/${id}/suspend`),
+  unsuspendJob: (id: string) =>
+    request<unknown>("patch", `/admin/jobs/${id}/unsuspend`),
 };
 
 export const reportService = {
@@ -57,9 +59,19 @@ export const reportService = {
     resourceId: string;
     reason: string;
     description?: string;
-  }) => request<unknown>("post", "/report", { data: payload }),
-  my: () => request<unknown[]>("get", "/report/my"),
-  all: () => request<unknown[]>("get", "/report"),
+  }) => request<Report>("post", "/report", { data: payload }),
+  my: () => request<Report[]>("get", "/report/my"),
+  all: () => request<Report[]>("get", "/report"),
+  start: (id: string) => request<Report>("patch", `/report/${id}/review`),
+  resolve: (id: string, adminDecision: string) =>
+    request<Report>("patch", `/report/${id}/resolve`, {
+      data: { adminDecision },
+    }),
+  reject: (id: string, adminDecision: string) =>
+    request<Report>("patch", `/report/${id}/reject`, {
+      data: { adminDecision },
+    }),
+  remove: (id: string) => request<undefined>("delete", `/report/${id}`),
 };
 
 export const userService = {

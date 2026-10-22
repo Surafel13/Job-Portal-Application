@@ -1,181 +1,100 @@
 import type { Request, Response } from "express";
 import { Types } from "mongoose";
 import jobService from "./job.service.js";
+import type { AuthUser } from "./job.service.js";
 import sendResponse from "../../utils/sendResponse.js";
+import { ApiError } from "../../utils/ApiError.js";
 import type {
-    CreateJobInput,
-    UpdateJobInput,
-    UpdateJobStatusInput,
-    JobStatusQueryInput,
+  CreateJobInput,
+  UpdateJobInput,
+  UpdateJobStatusInput,
+  JobStatusQueryInput,
 } from "./job.validation.js";
 
 class JobController {
-    async createJob(
-        req: Request,
-        res: Response
-    ): Promise<void> {
-        const data = req.body as CreateJobInput;
-
-        const job = await jobService.createJob(data);
-
-        sendResponse(
-            res,
-            201,
-            "Job created successfully.",
-            job
-        );
+  private getUser(req: Request): AuthUser {
+    if (!req.user) {
+      throw new ApiError(401, "Authentication required.");
     }
 
-    async getJobById(
-        req: Request,
-        res: Response
-    ): Promise<void> {
-        const jobId = req.params.id as string
+    return req.user;
+  }
 
-        const job = await jobService.getJobById(jobId);
+  async createJob(req: Request, res: Response): Promise<void> {
+    const job = await jobService.createJob(
+      this.getUser(req),
+      req.body as CreateJobInput,
+    );
 
-        sendResponse(
-            res,
-            200,
-            "Job retrieved successfully.",
-            job
-        );
-    }
+    sendResponse(res, 201, "Job created successfully.", job);
+  }
 
-    async getJobsByCompany(
-        req: Request,
-        res: Response
-    ): Promise<void> {
-        const companyId = new Types.ObjectId(
-            req.params.companyId as string
-        );
+  async getJobById(req: Request, res: Response): Promise<void> {
+    const jobId = req.params.id as string;
 
-        const jobs = await jobService.getJobsByCompany(
-            companyId
-        );
+    const job = await jobService.getJobById(jobId);
 
-        sendResponse(
-            res,
-            200,
-            "Company jobs retrieved successfully.",
-            jobs
-        );
-    }
+    sendResponse(res, 200, "Job retrieved successfully.", job);
+  }
 
-    async getJobsByCategory(
-        req: Request,
-        res: Response
-    ): Promise<void> {
-        const categoryId = new Types.ObjectId(
-            req.params.categoryId as string
-        );
+  async getJobsByCompany(req: Request, res: Response): Promise<void> {
+    const companyId = new Types.ObjectId(req.params.companyId as string);
 
-        const jobs = await jobService.getJobsByCategory(
-            categoryId
-        );
+    const jobs = await jobService.getJobsByCompany(companyId);
 
-        sendResponse(
-            res,
-            200,
-            "Category jobs retrieved successfully.",
-            jobs
-        );
-        
-    }
+    sendResponse(res, 200, "Company jobs retrieved successfully.", jobs);
+  }
 
-    async getJobsByStatus(
-        req: Request,
-        res: Response
-    ): Promise<void> {
-        const { status } =
-            req.query as unknown as JobStatusQueryInput;
+  async getJobsByCategory(req: Request, res: Response): Promise<void> {
+    const categoryId = new Types.ObjectId(req.params.categoryId as string);
 
-        const jobs = await jobService.getJobsByStatus(
-            status
-        );
+    const jobs = await jobService.getJobsByCategory(categoryId);
 
-        sendResponse(
-            res,
-            200,
-            "Jobs retrieved successfully.",
-            jobs
-        );
-    }
+    sendResponse(res, 200, "Category jobs retrieved successfully.", jobs);
+  }
 
-    async updateJob(
-        req: Request,
-        res: Response
-    ): Promise<void> {
-        const jobId = req.params.id as string
+  async getJobsByStatus(req: Request, res: Response): Promise<void> {
+    const { status } = req.query as unknown as JobStatusQueryInput;
 
-        const data = req.body as UpdateJobInput;
+    const jobs = await jobService.getJobsByStatus(status);
 
-        const job = await jobService.updateJob(
-            jobId,
-            data
-        );
+    sendResponse(res, 200, "Jobs retrieved successfully.", jobs);
+  }
 
-        sendResponse(
-            res,
-            200,
-            "Job updated successfully.",
-            job
-        );
-    }
+  async updateJob(req: Request, res: Response): Promise<void> {
+    const job = await jobService.updateJob(
+      req.params.id as string,
+      req.body as UpdateJobInput,
+    );
 
-    async updateJobStatus(
-        req: Request,
-        res: Response
-    ): Promise<void> {
-        const jobId = req.params.id as string
+    sendResponse(res, 200, "Job updated successfully.", job);
+  }
 
-        const { status } =
-            req.body as UpdateJobStatusInput;
+  async updateJobStatus(req: Request, res: Response): Promise<void> {
+    const { status } = req.body as UpdateJobStatusInput;
 
-        const job = await jobService.updateJobStatus(
-            jobId,
-            status
-        );
+    const job = await jobService.updateJobStatus(
+      this.getUser(req),
+      req.params.id as string,
+      status,
+    );
 
-        sendResponse(
-            res,
-            200,
-            "Job status updated successfully.",
-            job
-        );
-    }
+    sendResponse(res, 200, "Job status updated successfully.", job);
+  }
 
-    async incrementJobView(
-        req: Request,
-        res: Response
-    ): Promise<void> {
-        const jobId = req.params.id as string
+  async incrementJobView(req: Request, res: Response): Promise<void> {
+    const jobId = req.params.id as string;
 
-        const job =
-            await jobService.incrementJobView(jobId);
+    const job = await jobService.incrementJobView(jobId);
 
-        sendResponse(
-            res,
-            200,
-            "Job view count updated successfully.",
-            job
-        );
-    }
+    sendResponse(res, 200, "Job view count updated successfully.", job);
+  }
 
-    async deleteJob(
-        req: Request,
-        res: Response
-    ): Promise<void> {
-        const jobId = req.params.id as string
+  async deleteJob(req: Request, res: Response): Promise<void> {
+    await jobService.deleteJob(this.getUser(req), req.params.id as string);
 
-        await jobService.deleteJob(jobId);
-
-        sendResponse(
-            res,
-            200,
-            "Job deleted successfully."
-        );
-    }
+    sendResponse(res, 200, "Job deleted successfully.");
+  }
 }
 
 export const jobController = new JobController();

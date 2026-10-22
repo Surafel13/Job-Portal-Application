@@ -20,6 +20,7 @@ import { useLogout } from "../../hooks/useAuth";
 import { superAdminNav } from "../../config/superAdminNav";
 import { cn } from "../../lib/cn";
 import type { UserRole } from "../../types/models";
+import { Flag } from "lucide-react";
 
 interface NavItem {
   to: string;
@@ -39,6 +40,7 @@ function itemsFor(role?: UserRole): NavItem[] {
       { to: "/employer/applicants", icon: Users, label: "Applicants" },
       { to: "/messages", icon: MessageSquare, label: "Messages" },
       { to: "/employer/settings", icon: Settings, label: "Settings" },
+      { to: "/admin/reports", icon: Flag, label: "Reports" },
     ];
   }
   if (role === "superAdmin") {
@@ -55,6 +57,7 @@ function itemsFor(role?: UserRole): NavItem[] {
       { to: "/admin/users", icon: Users, label: "Users" },
       { to: "/admin/companies", icon: Briefcase, label: "Companies" },
       { to: "/admin/jobs", icon: Briefcase, label: "Jobs" },
+      { to: "/admin/reports", icon: Flag, label: "Reports" },
       { to: "/messages", icon: Bell, label: "Alerts" },
       { to: "/admin/settings", icon: Shield, label: "Settings" },
     ];

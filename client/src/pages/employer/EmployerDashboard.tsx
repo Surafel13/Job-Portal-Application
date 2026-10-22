@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Briefcase, Eye, FileText, Users } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -8,11 +9,13 @@ import { formatDate, titleCase } from "../../lib/format";
 import { queryKeys } from "../../lib/queryKeys";
 import { catalogService, jobsService } from "../../services/jobs.service";
 import { useAuthStore } from "../../store/authStore";
-import { findMyEmployer } from "../../lib/job";
 import type { Job } from "../../types/models";
+import { findMyEmployer } from "../../lib/employer";
 
 export function EmployerDashboard() {
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+  const [error, setError] = useState("");
 
   const employers = useQuery({
     queryKey: queryKeys.employers,
@@ -20,41 +23,78 @@ export function EmployerDashboard() {
   });
 
   const company = findMyEmployer(employers.data ?? [], user?._id);
+  const verified = company?.verificationStatus === "verified";
 
   const jobs = useQuery({
     queryKey: queryKeys.employerJobs(company?._id ?? "none"),
     enabled: Boolean(company?._id),
-    queryFn: () => jobsService.byCompany(company!._id).then((r) => r.data ?? []),
+    queryFn: () =>
+      jobsService.byCompany(company!._id).then((r) => r.data ?? []),
+  });
+
+  const changeStatus = useMutation({
+    mutationFn: ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: "published" | "closed";
+    }) => jobsService.updateStatus(id, status),
+    onSuccess: () => {
+      setError("");
+      return queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (err: Error) => setError(err.message),
   });
 
   const list = jobs.data ?? [];
   const active = list.filter((job) => job.status === "published").length;
   const views = list.reduce((sum, job) => sum + (job.viewCount ?? 0), 0);
 
+  const postButton = verified ? (
+    <Link to="/employer/jobs/new">
+      <Button>Post a Job</Button>
+    </Link>
+  ) : (
+    <Button disabled title="Your employer account must be verified first">
+      Post a Job
+    </Button>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold">Welcome back, {user?.fullName?.split(" ")[0]}!</h1>
+          <h1 className="text-3xl font-extrabold">
+            Welcome back, {user?.fullName?.split(" ")[0]}!
+          </h1>
           <p className="text-muted">
             {company
               ? `${company.name} · ${titleCase(company.verificationStatus)}`
               : "Here’s your company overview."}
           </p>
         </div>
-        <Link to="/employer/jobs/new">
-          <Button>Post a Job</Button>
-        </Link>
+        {postButton}
       </div>
-      {company?.verificationStatus !== "verified" ? (
+      {!employers.isLoading && !verified ? (
         <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Employers must be verified by an admin before new jobs can be published.
+          Employers must be verified by an admin before they can post, edit, or
+          publish jobs.
+        </p>
+      ) : null}
+      {error ? (
+        <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
+          {error}
         </p>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric icon={Briefcase} label="Active Jobs" value={active} />
         <Metric icon={FileText} label="Total Listings" value={list.length} />
-        <Metric icon={Users} label="Pending Review" value={list.filter((j) => j.status === "pending").length} />
+        <Metric
+          icon={Users}
+          label="Drafts"
+          value={list.filter((j) => j.status === "draft").length}
+        />
         <Metric icon={Eye} label="Job Views" value={views} />
       </div>
       <section className="rounded-3xl bg-white p-5 ring-1 ring-line">
@@ -66,17 +106,19 @@ export function EmployerDashboard() {
         </div>
         {jobs.isLoading ? <Spinner /> : null}
         {list.slice(0, 6).map((job) => (
-          <JobRow key={job._id} job={job} />
+          <JobRow
+            key={job._id}
+            job={job}
+            canManage={verified}
+            busy={changeStatus.isPending}
+            onStatus={(status) => changeStatus.mutate({ id: job._id, status })}
+          />
         ))}
         {!jobs.isLoading && list.length === 0 ? (
           <EmptyState
             title="No jobs posted yet"
             description="Create a listing to start receiving applications."
-            action={
-              <Link to="/employer/jobs/new">
-                <Button>Post a Job</Button>
-              </Link>
-            }
+            action={postButton}
           />
         ) : null}
       </section>
@@ -104,16 +146,66 @@ function Metric({
   );
 }
 
-function JobRow({ job }: { job: Job }) {
+function JobRow({
+  job,
+  canManage,
+  busy,
+  onStatus,
+}: {
+  job: Job;
+  canManage: boolean;
+  busy: boolean;
+  onStatus: (status: "published" | "closed") => void;
+}) {
+  const canPublish =
+    canManage &&
+    (job.status === "draft" ||
+      job.status === "closed" ||
+      job.status === "expired");
+  const canClose = canManage && job.status === "published";
+
   return (
-    <div className="flex items-center justify-between border-b border-line py-3 last:border-0">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-0">
       <div>
-        <Link to={`/jobs/${job._id}`} className="font-semibold hover:text-brand-700">
+        <Link
+          to={`/jobs/${job._id}`}
+          className="font-semibold hover:text-brand-700"
+        >
           {job.title}
         </Link>
         <p className="text-xs text-muted">{formatDate(job.createdAt)}</p>
       </div>
-      <Badge tone={job.status === "published" ? "green" : "amber"}>{titleCase(job.status)}</Badge>
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge tone={job.status === "published" ? "green" : "amber"}>
+          {titleCase(job.status)}
+        </Badge>
+        {canManage ? (
+          <Link to={`/employer/jobs/${job._id}/edit`}>
+            <Button size="sm" variant="outline">
+              Edit
+            </Button>
+          </Link>
+        ) : null}
+        {canPublish ? (
+          <Button
+            size="sm"
+            disabled={busy}
+            onClick={() => onStatus("published")}
+          >
+            Publish
+          </Button>
+        ) : null}
+        {canClose ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={busy}
+            onClick={() => onStatus("closed")}
+          >
+            Close
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }
