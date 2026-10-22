@@ -40,7 +40,6 @@ function itemsFor(role?: UserRole): NavItem[] {
       { to: "/employer/applicants", icon: Users, label: "Applicants" },
       { to: "/messages", icon: MessageSquare, label: "Messages" },
       { to: "/employer/settings", icon: Settings, label: "Settings" },
-      { to: "/admin/reports", icon: Flag, label: "Reports" },
     ];
   }
   if (role === "superAdmin") {
