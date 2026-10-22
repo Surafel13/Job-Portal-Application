@@ -8,7 +8,7 @@ import { queryKeys } from "../../lib/queryKeys";
 import { adminService } from "../../services/platform.service";
 import type { User, UserRole } from "../../types/models";
 
-const ROLES: UserRole[] = ["worker", "employer", "admin"];
+const ROLES: UserRole[] = ["worker", "employer"];
 
 export function AdminUsersPage() {
   const [role, setRole] = useState<UserRole>("worker");

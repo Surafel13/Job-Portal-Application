@@ -54,7 +54,7 @@ function itemsFor(role?: UserRole): NavItem[] {
     return [
       { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
       { to: "/admin/users", icon: Users, label: "Users" },
-      { to: "/admin/companies", icon: Briefcase, label: "Companies" },
+      { to: "/admin/companies", icon: Briefcase, label: "Employers" },
       { to: "/admin/jobs", icon: Briefcase, label: "Jobs" },
       { to: "/admin/reports", icon: Flag, label: "Reports" },
       { to: "/messages", icon: Bell, label: "Alerts" },

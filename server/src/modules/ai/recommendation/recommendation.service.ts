@@ -54,7 +54,7 @@ export class RecommendationService {
       );
 
       const response = await gemini.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.8-flash",
         contents: prompt,
       });
 
@@ -138,6 +138,15 @@ export class RecommendationService {
       }
 
       console.error("Recommendation service error:", error);
+
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
 
       throw new ApiError(500, "Failed to generate job recommendations.");
     }

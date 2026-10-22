@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  Search,
+  ShieldCheck,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { Badge } from "../../components/ui/Badge";
@@ -23,7 +30,9 @@ const STATUSES: ReportStatus[] = [
   "resolved",
   "rejected",
 ];
+
 const TYPES: ReportResourceType[] = ["user", "employer", "job", "content"];
+
 const REASONS = [
   "spam",
   "fraud",
@@ -41,15 +50,30 @@ const tone: Record<ReportStatus, "amber" | "blue" | "green" | "slate"> = {
   resolved: "green",
   rejected: "slate",
 };
-const statusLabel = (s: ReportStatus) =>
-  s === "rejected" ? "Dismissed" : titleCase(s);
+
+const statusLabel = (status: ReportStatus) =>
+  status === "rejected" ? "Dismissed" : titleCase(status);
 
 const person = (ref?: string | PersonRef): PersonRef | null =>
   !ref ? null : typeof ref === "string" ? { _id: ref } : ref;
+
 const personName = (p: PersonRef | null) =>
   p?.fullName ?? (p ? `User ${p._id.slice(-6)}` : "—");
 
 type Action = "review" | "resolve" | "dismiss" | "delete";
+
+type ReportActionResponse = {
+  data?: Report;
+  message: string;
+  meta?: Record<string, unknown>;
+};
+
+const statusIcons = {
+  pending: Clock3,
+  reviewing: ShieldCheck,
+  resolved: CheckCircle2,
+  rejected: XCircle,
+};
 
 export function AdminReportsPage() {
   const queryClient = useQueryClient();
@@ -73,47 +97,50 @@ export function AdminReportsPage() {
   const all = useMemo(() => reports.data ?? [], [reports.data]);
 
   const counts = useMemo(() => {
-    const base: Record<ReportStatus, number> = {
+    const result: Record<ReportStatus, number> = {
       pending: 0,
       reviewing: 0,
       resolved: 0,
       rejected: 0,
     };
-    for (const r of all) base[r.status] += 1;
-    return base;
+
+    for (const report of all) {
+      result[report.status] += 1;
+    }
+
+    return result;
   }, [all]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return all.filter((r) => {
-      if (status && r.status !== status) return false;
-      if (type && r.resourceType !== type) return false;
-      if (reason && r.reason !== reason) return false;
+
+    return all.filter((report) => {
+      if (status && report.status !== status) return false;
+      if (type && report.resourceType !== type) return false;
+      if (reason && report.reason !== reason) return false;
+
       if (needle) {
-        const reporter = person(r.reporterId);
-        const hay = [
-          r.description,
-          r.reason,
-          r.resourceId,
+        const reporter = person(report.reporterId);
+
+        const searchable = [
+          report.description,
+          report.reason,
+          report.resourceId,
           reporter?.fullName,
           reporter?.email,
         ]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
-        if (!hay.includes(needle)) return false;
+
+        if (!searchable.includes(needle)) return false;
       }
+
       return true;
     });
   }, [all, status, type, reason, q]);
 
-  const selected = all.find((r) => r._id === selectedId) ?? null;
-
-  type ReportActionResponse = {
-    data?: Report;
-    message: string;
-    meta?: Record<string, unknown>;
-  };
+  const selected = all.find((report) => report._id === selectedId) ?? null;
 
   const act = useMutation<
     ReportActionResponse,
@@ -126,7 +153,7 @@ export function AdminReportsPage() {
       if (action === "dismiss") return reportService.reject(id, text ?? "");
       return reportService.remove(id);
     },
-    onSuccess: (_res, vars) => {
+    onSuccess: (_response, variables) => {
       const messages: Record<Action, string> = {
         review: "Review started.",
         resolve: "Report resolved.",
@@ -134,50 +161,87 @@ export function AdminReportsPage() {
         delete: "Report deleted.",
       };
 
-      setNotice(messages[vars.action]);
+      setNotice(messages[variables.action]);
       setFormError("");
       setDecision("");
 
-      if (vars.action === "delete") setSelectedId(null);
+      if (variables.action === "delete") {
+        setSelectedId(null);
+      }
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.reports });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.reports,
+      });
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       setNotice("");
       setFormError(error.message);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.reports });
+
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.reports,
+      });
     },
   });
 
-  const run = (action: Action) => {
-    if (!selected) return;
-    setFormError("");
-    setNotice("");
-
-    if (action === "resolve" || action === "dismiss") {
-      const text = decision.trim();
-      if (!text) return setFormError("A decision note is required.");
-      if (text.length > 2000)
-        return setFormError("Decision must be 2000 characters or fewer.");
-      act.mutate({ id: selected._id, action, text });
-      return;
-    }
-    if (
-      action === "delete" &&
-      !window.confirm("Permanently delete this report?")
-    )
-      return;
-    act.mutate({ id: selected._id, action });
-  };
-
-  const select = (id: string) => {
+  const selectReport = (id: string) => {
     setSelectedId(id);
     setDecision("");
     setFormError("");
     setNotice("");
   };
 
-  if (reports.isLoading) return <Spinner label="Loading reports" />;
+  const runAction = (action: Action) => {
+    if (!selected) return;
+
+    setFormError("");
+    setNotice("");
+
+    if (action === "resolve" || action === "dismiss") {
+      const text = decision.trim();
+
+      if (!text) {
+        setFormError("A decision note is required.");
+        return;
+      }
+
+      if (text.length > 2000) {
+        setFormError("Decision must be 2000 characters or fewer.");
+        return;
+      }
+
+      act.mutate({
+        id: selected._id,
+        action,
+        text,
+      });
+
+      return;
+    }
+
+    if (
+      action === "delete" &&
+      !window.confirm("Permanently delete this report?")
+    ) {
+      return;
+    }
+
+    act.mutate({
+      id: selected._id,
+      action,
+    });
+  };
+
+  const clearFilters = () => {
+    setStatus("");
+    setType("");
+    setReason("");
+    setQ("");
+  };
+
+  if (reports.isLoading) {
+    return <Spinner label="Loading reports" />;
+  }
+
   if (reports.isError) {
     return (
       <ErrorState
@@ -188,141 +252,213 @@ export function AdminReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-extrabold">Reports</h1>
-        <p className="text-muted">
-          Review, resolve, or dismiss user-submitted reports.
-        </p>
-      </div>
+    <div className="space-y-5">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
+          <p className="mt-1 text-sm text-muted">
+            Review and manage reports submitted by users.
+          </p>
+        </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {STATUSES.map((s) => (
-          <button
-            key={s}
-            onClick={() => setStatus(status === s ? "" : s)}
-            className={`rounded-3xl bg-white p-5 text-left ring-1 transition hover:shadow-md ${
-              status === s ? "ring-2 ring-brand-600" : "ring-line"
-            }`}
-          >
-            <p className="text-sm text-muted">{statusLabel(s)}</p>
-            <p className="mt-2 text-3xl font-extrabold">{counts[s]}</p>
-          </button>
-        ))}
-      </div>
+        <div className="rounded-xl border border-line bg-white px-3 py-2">
+          <p className="text-xs text-muted">Total reports</p>
+          <p className="text-xl font-bold">{all.length}</p>
+        </div>
+      </header>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex min-w-[220px] flex-1 items-center rounded-full border border-line bg-white px-3 py-2">
-          <Search className="h-4 w-4 text-muted" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search reporter, description, resource ID"
-            className="ml-2 w-full bg-transparent text-sm outline-none"
-          />
-        </div>
-        <div className="w-40">
-          <Select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as "" | ReportStatus)}
-          >
-            <option value="">All statuses</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {statusLabel(s)}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="w-40">
-          <Select
-            value={type}
-            onChange={(e) => setType(e.target.value as "" | ReportResourceType)}
-          >
-            <option value="">All types</option>
-            {TYPES.map((t) => (
-              <option key={t} value={t}>
-                {titleCase(t)}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="w-52">
-          <Select value={reason} onChange={(e) => setReason(e.target.value)}>
-            <option value="">All reasons</option>
-            {REASONS.map((r) => (
-              <option key={r} value={r}>
-                {titleCase(r)}
-              </option>
-            ))}
-          </Select>
-        </div>
-        {(status || type || reason || q) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setStatus("");
-              setType("");
-              setReason("");
-              setQ("");
-            }}
-          >
-            Clear
-          </Button>
-        )}
-      </div>
+      <section className="overflow-hidden rounded-2xl border border-line bg-white">
+        <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-3">
+          <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted">
+            Status
+          </span>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <section className="space-y-3">
-          {filtered.map((r) => {
-            const reporter = person(r.reporterId);
+          {STATUSES.map((item) => {
+            const Icon = statusIcons[item];
+            const active = status === item;
+
             return (
               <button
-                key={r._id}
-                onClick={() => select(r._id)}
-                className={`block w-full rounded-3xl bg-white p-4 text-left ring-1 transition hover:shadow-md ${
-                  selectedId === r._id ? "ring-2 ring-brand-600" : "ring-line"
+                key={item}
+                type="button"
+                onClick={() => setStatus(active ? "" : item)}
+                aria-pressed={active}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
+                  active
+                    ? "border-brand-600 bg-brand-50 text-brand-700"
+                    : "border-line text-muted hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge tone={tone[r.status]}>{statusLabel(r.status)}</Badge>
-                    <Badge tone="slate">{titleCase(r.resourceType)}</Badge>
-                    <Badge tone="rose">{titleCase(r.reason)}</Badge>
-                  </div>
-                  <span className="text-xs text-muted">
-                    {formatDate(r.createdAt)}
-                  </span>
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm text-muted">
-                  {r.description || "No description provided."}
-                </p>
-                <p className="mt-2 text-xs text-muted">
-                  Reported by {personName(reporter)}
-                </p>
+                <Icon className="h-3.5 w-3.5" />
+                {statusLabel(item)}
+                <span
+                  className={`rounded-md px-1.5 py-0.5 ${
+                    active ? "bg-white" : "bg-gray-100"
+                  }`}
+                >
+                  {counts[item]}
+                </span>
               </button>
             );
           })}
-          {filtered.length === 0 ? (
-            <EmptyState
-              title="No reports found"
-              description={
-                all.length === 0
-                  ? "No reports have been submitted yet."
-                  : "No reports match the current filters."
-              }
+        </div>
+
+        <div className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_150px_160px_150px_auto]">
+          <div className="flex min-w-0 items-center rounded-xl border border-line px-3 py-2 focus-within:border-brand-600">
+            <Search className="h-4 w-4 shrink-0 text-muted" />
+            <input
+              value={q}
+              onChange={(event) => setQ(event.target.value)}
+              placeholder="Search reports..."
+              aria-label="Search reports"
+              className="ml-2 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted"
             />
-          ) : null}
+          </div>
+
+          <Select
+            value={type}
+            onChange={(event) =>
+              setType(event.target.value as "" | ReportResourceType)
+            }
+          >
+            <option value="">All types</option>
+            {TYPES.map((item) => (
+              <option key={item} value={item}>
+                {titleCase(item)}
+              </option>
+            ))}
+          </Select>
+
+          <Select
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+          >
+            <option value="">All reasons</option>
+            {REASONS.map((item) => (
+              <option key={item} value={item}>
+                {titleCase(item)}
+              </option>
+            ))}
+          </Select>
+
+          <Select
+            value={status}
+            onChange={(event) =>
+              setStatus(event.target.value as "" | ReportStatus)
+            }
+          >
+            <option value="">All statuses</option>
+            {STATUSES.map((item) => (
+              <option key={item} value={item}>
+                {statusLabel(item)}
+              </option>
+            ))}
+          </Select>
+
+          {(status || type || reason || q) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="self-center"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      </section>
+
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_370px]">
+        <section className="min-w-0 overflow-hidden rounded-2xl border border-line bg-white">
+          <div className="flex items-center justify-between border-b border-line px-4 py-3">
+            <h2 className="text-sm font-semibold">Submitted reports</h2>
+            <span className="text-xs text-muted">
+              {filtered.length} results
+            </span>
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="p-5">
+              <EmptyState
+                title="No reports found"
+                description={
+                  all.length === 0
+                    ? "No reports have been submitted yet."
+                    : "Try changing your search or filters."
+                }
+              />
+            </div>
+          ) : (
+            <div className="divide-y divide-line">
+              {filtered.map((report) => {
+                const reporter = person(report.reporterId);
+                const active = selectedId === report._id;
+
+                return (
+                  <button
+                    key={report._id}
+                    type="button"
+                    onClick={() => selectReport(report._id)}
+                    aria-pressed={active}
+                    className={`block w-full border-l-2 px-4 py-3 text-left transition hover:bg-gray-50 ${
+                      active
+                        ? "border-l-brand-600 bg-brand-50/50"
+                        : "border-l-transparent"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge tone={tone[report.status]}>
+                          {statusLabel(report.status)}
+                        </Badge>
+                        <span className="text-xs text-muted">
+                          {titleCase(report.resourceType)}
+                        </span>
+                      </div>
+
+                      <span className="text-xs text-muted">
+                        {formatDate(report.createdAt)}
+                      </span>
+                    </div>
+
+                    <p className="mt-2 text-sm font-semibold">
+                      {titleCase(report.reason).replaceAll("_", " ")}
+                    </p>
+
+                    <p className="mt-1 line-clamp-2 text-sm text-muted">
+                      {report.description || "No description provided."}
+                    </p>
+
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                      <span className="truncate text-xs text-muted">
+                        By {personName(reporter)}
+                      </span>
+
+                      <span className="max-w-[50%] truncate text-xs text-muted">
+                        ID: {report.resourceId}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </section>
 
-        <aside className="h-fit rounded-3xl bg-white p-5 ring-1 ring-line lg:sticky lg:top-24">
+        <aside className="min-w-0 rounded-2xl border border-line bg-white lg:sticky lg:top-24">
           {!selected ? (
-            <p className="py-10 text-center text-sm text-muted">
-              Select a report to review it.
-            </p>
+            <div className="px-5 py-12 text-center">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
+                <ShieldCheck className="h-5 w-5 text-muted" />
+              </div>
+              <h2 className="mt-3 text-sm font-semibold">Report details</h2>
+              <p className="mt-1 text-sm text-muted">
+                Select a report to review its details and take action.
+              </p>
+            </div>
           ) : (
             <ReportDetail
+              key={selected._id}
               report={selected}
               decision={decision}
               onDecision={setDecision}
@@ -330,7 +466,7 @@ export function AdminReportsPage() {
               error={formError}
               notice={notice}
               canDelete={isSuperAdmin}
-              onAction={run}
+              onAction={runAction}
             />
           )}
         </aside>
@@ -351,41 +487,41 @@ function ReportDetail({
 }: {
   report: Report;
   decision: string;
-  onDecision: (v: string) => void;
+  onDecision: (value: string) => void;
   busy: boolean;
   error: string;
   notice: string;
   canDelete: boolean;
-  onAction: (a: Action) => void;
+  onAction: (action: Action) => void;
 }) {
   const reporter = person(report.reporterId);
   const reviewer = person(report.adminId);
-  const open = report.status === "pending" || report.status === "reviewing";
+
+  const open =
+    report.status === "pending" || report.status === "reviewing";
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-start justify-between gap-2">
-        <h2 className="font-bold">Report details</h2>
+    <div className="divide-y divide-line">
+      <div className="flex items-start justify-between gap-3 p-4">
+        <div className="min-w-0">
+          <p className="text-xs text-muted">REPORT DETAILS</p>
+          <h2 className="mt-1 break-words text-lg font-bold">
+            {titleCase(report.reason).replaceAll("_", " ")}
+          </h2>
+          <p className="mt-1 text-xs text-muted">
+            Submitted {formatDate(report.createdAt)}
+          </p>
+        </div>
+
         <Badge tone={tone[report.status]}>{statusLabel(report.status)}</Badge>
       </div>
 
-      <dl className="space-y-3 text-sm">
-        <Row label="Reason" value={titleCase(report.reason)} />
-        <Row label="Reported" value={formatDate(report.createdAt)} />
+      <div className="space-y-4 p-4">
+        <DetailRow label="Resource type" value={titleCase(report.resourceType)} />
+
         <div>
-          <dt className="text-xs uppercase text-muted">Reporter</dt>
-          <dd>
-            {personName(reporter)}
-            {reporter?.email ? (
-              <span className="block text-xs text-muted">{reporter.email}</span>
-            ) : null}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase text-muted">
-            Reported {report.resourceType}
-          </dt>
-          <dd className="break-all">
+          <p className="text-xs font-medium text-muted">Resource ID</p>
+          <p className="mt-1 break-all text-sm">
             {report.resourceType === "job" ? (
               <Link
                 to={`/jobs/${report.resourceId}`}
@@ -396,87 +532,138 @@ function ReportDetail({
             ) : (
               report.resourceId
             )}
-          </dd>
+          </p>
         </div>
+
         <div>
-          <dt className="text-xs uppercase text-muted">Description</dt>
-          <dd className="whitespace-pre-wrap text-muted">
-            {report.description || "No description provided."}
-          </dd>
+          <p className="text-xs font-medium text-muted">Reported by</p>
+          <p className="mt-1 text-sm font-medium">{personName(reporter)}</p>
+          {reporter?.email && (
+            <p className="mt-0.5 break-all text-xs text-muted">
+              {reporter.email}
+            </p>
+          )}
         </div>
-        {!open ? (
+
+        <div>
+          <p className="text-xs font-medium text-muted">Description</p>
+          <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-muted">
+            {report.description || "No description provided."}
+          </p>
+        </div>
+
+        {!open && (
           <>
             <div>
-              <dt className="text-xs uppercase text-muted">Decision</dt>
-              <dd className="whitespace-pre-wrap">
-                {report.adminDecision ?? "—"}
-              </dd>
+              <p className="text-xs font-medium text-muted">Decision</p>
+              <p className="mt-1 whitespace-pre-wrap break-words text-sm">
+                {report.adminDecision || "No decision note provided."}
+              </p>
             </div>
-            <Row label="Reviewed by" value={personName(reviewer)} />
-            <Row label="Reviewed on" value={formatDate(report.reviewedAt)} />
-          </>
-        ) : null}
-      </dl>
 
-      {open ? (
-        <div className="space-y-3 border-t border-line pt-4">
-          {report.status === "pending" ? (
+            <DetailRow
+              label="Reviewed by"
+              value={personName(reviewer)}
+            />
+
+            <DetailRow
+              label="Reviewed on"
+              value={formatDate(report.reviewedAt)}
+            />
+          </>
+        )}
+      </div>
+
+      {open && (
+        <div className="space-y-3 p-4">
+          {report.status === "pending" && (
             <Button
               variant="outline"
               className="w-full"
               disabled={busy}
               onClick={() => onAction("review")}
             >
+              <ShieldCheck className="h-4 w-4" />
               Start review
             </Button>
-          ) : null}
-          <Field label="Decision note (required to resolve or dismiss)">
+          )}
+
+          <Field label="Decision note">
             <Textarea
-              rows={4}
+              rows={3}
               maxLength={2000}
               value={decision}
-              onChange={(e) => onDecision(e.target.value)}
-              placeholder="Explain the outcome…"
+              onChange={(event) => onDecision(event.target.value)}
+              placeholder="Explain why this report is resolved or dismissed..."
             />
           </Field>
+
           <div className="grid grid-cols-2 gap-2">
-            <Button disabled={busy} onClick={() => onAction("resolve")}>
+            <Button
+              disabled={busy}
+              onClick={() => onAction("resolve")}
+            >
+              <CheckCircle2 className="h-4 w-4" />
               Resolve
             </Button>
+
             <Button
               variant="secondary"
               disabled={busy}
               onClick={() => onAction("dismiss")}
             >
+              <XCircle className="h-4 w-4" />
               Dismiss
             </Button>
           </div>
         </div>
-      ) : null}
+      )}
 
-      {canDelete ? (
-        <Button
-          variant="danger"
-          size="sm"
-          className="w-full"
-          disabled={busy}
-          onClick={() => onAction("delete")}
-        >
-          <Trash2 className="h-4 w-4" /> Delete report
-        </Button>
-      ) : null}
+      {canDelete && (
+        <div className="p-4">
+          <Button
+            variant="danger"
+            size="sm"
+            className="w-full"
+            disabled={busy}
+            onClick={() => onAction("delete")}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete report
+          </Button>
+        </div>
+      )}
 
-      {error ? <p className="text-sm text-rose-500">{error}</p> : null}
-      {notice ? <p className="text-sm text-brand-700">{notice}</p> : null}
+      {(error || notice) && (
+        <div className="px-4 py-3">
+          {error && (
+            <p role="alert" className="text-sm text-rose-500">
+              {error}
+            </p>
+          )}
+
+          {notice && (
+            <p role="status" className="text-sm text-brand-700">
+              {notice}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function DetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div>
-      <dt className="text-xs uppercase text-muted">{label}</dt>
-      <dd>{value}</dd>
+      <p className="text-xs font-medium text-muted">{label}</p>
+      <p className="mt-1 break-words text-sm">{value}</p>
     </div>
   );
 }

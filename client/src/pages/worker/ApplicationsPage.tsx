@@ -41,11 +41,6 @@ const STATUS_TONES: Record<
   withdrawn: "slate",
 };
 
-const TERMINAL_STATUSES: ApplicationStatus[] = [
-  "accepted",
-  "rejected",
-  "withdrawn",
-];
 
 /* -------------------------------------------------------------------------- */
 /*                              Page                                          */
@@ -236,8 +231,7 @@ function ApplicationsTableHeader() {
 
 function ApplicationRow({
   app,
-  onWithdraw,
-  isWithdrawing,
+
 }: {
   app: Application;
   onWithdraw: () => void;
@@ -247,7 +241,6 @@ function ApplicationRow({
   const companyName =
     job && typeof job.companyId === "object" ? job.companyId.name : "Company";
 
-  const isTerminal = TERMINAL_STATUSES.includes(app.status);
 
   return (
     <div className="grid grid-cols-1 items-center gap-3 px-6 py-4 transition-colors hover:bg-slate-50/50 md:grid-cols-[2fr_1fr_1fr_1fr_auto] md:gap-4">
@@ -286,15 +279,6 @@ function ApplicationRow({
             Message
           </Button>
         </Link>
-        <Button
-          size="sm"
-          variant="outline"
-          className="rounded-full px-4"
-          disabled={isTerminal || isWithdrawing}
-          onClick={onWithdraw}
-        >
-          {isWithdrawing ? "Withdrawing…" : "Withdraw"}
-        </Button>
       </div>
     </div>
   );
