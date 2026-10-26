@@ -48,29 +48,15 @@ export interface AuthPayload {
 }
 
 export type EmploymentType =
-  | "full-time"
-  | "part-time"
-  | "contract"
-  | "internship"
-  | "freelance";
+  "full-time" | "part-time" | "contract" | "internship" | "freelance";
 
 export type ExperienceLevel = "entry" | "junior" | "mid" | "senior" | "lead";
 
 export type EducationLevel =
-  | "high-school"
-  | "certificate"
-  | "diploma"
-  | "bachelor"
-  | "master"
-  | "phd";
+  "high-school" | "certificate" | "diploma" | "bachelor" | "master" | "phd";
 
 export type JobStatus =
-  | "draft"
-  | "pending"
-  | "published"
-  | "closed"
-  | "expired"
-  | "rejected";
+  "draft" | "pending" | "published" | "closed" | "expired" | "rejected";
 
 export interface SalaryRange {
   minimum?: number;
@@ -281,7 +267,14 @@ export interface ConversationLastMessage {
 export interface Conversation {
   _id: string;
   participants: User[];
-  jobId?: Job | { _id: string; title: string; location?: string; employmentType?: string };
+  jobId?:
+    | Job
+    | {
+        _id: string;
+        title: string;
+        location?: string;
+        employmentType?: string;
+      };
   applicationId?: string;
   lastMessage?: ConversationLastMessage;
   lastMessageAt?: string;
@@ -313,4 +306,10 @@ export interface ConversationContact {
   context?: string;
   jobId?: string;
   applicationId?: string;
+}
+
+export interface GeneratedJobDescription {
+  description: string;
+  responsibilities: string[];
+  requirements: string[];
 }

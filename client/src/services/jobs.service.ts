@@ -10,6 +10,7 @@ import type {
   SavedJob,
   Skill,
 } from "../types/models";
+import type { GeneratedJobDescription } from "../types/models";
 
 export const catalogService = {
   categories: () =>
@@ -60,6 +61,16 @@ export const jobsService = {
 
   recommendations: () =>
     request<RecommendationResult>("get", "/recommendation"),
+
+  generateDescription: (payload: {
+    title: string;
+    skills: string[];
+    experienceLevel: string;
+    employmentType: string;
+  }) =>
+    request<GeneratedJobDescription>("post", "/job-description/generate", {
+      data: payload,
+    }),
 };
 
 export const savedJobsService = {

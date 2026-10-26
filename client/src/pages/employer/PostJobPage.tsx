@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { LoaderCircle, Sparkles } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "../../components/ui/Button";
 import { Field, Input, Select, Textarea } from "../../components/ui/Input";
 import { ErrorState, Spinner } from "../../components/ui/States";
+import { findMyEmployer } from "../../lib/employer";
+import { titleCase } from "../../lib/format";
 import { queryKeys } from "../../lib/queryKeys";
 import { catalogService, jobsService } from "../../services/jobs.service";
 import { useAuthStore } from "../../store/authStore";
-import { findMyEmployer } from "../../lib/employer";
 import type {
   EducationLevel,
   EmploymentType,
@@ -15,10 +17,115 @@ import type {
   Job,
 } from "../../types/models";
 
+/* -------------------------------------------------------------------------- */
+/*                         Constants & types                                  */
+/* -------------------------------------------------------------------------- */
+
+const EMPLOYMENT_TYPES: EmploymentType[] = [
+  "full-time",
+  "part-time",
+  "contract",
+  "internship",
+  "freelance",
+];
+const EXPERIENCE_LEVELS: ExperienceLevel[] = [
+  "entry",
+  "junior",
+  "mid",
+  "senior",
+  "lead",
+];
+const EDUCATION_LEVELS: EducationLevel[] = [
+  "high-school",
+  "certificate",
+  "diploma",
+  "bachelor",
+  "master",
+  "phd",
+];
+
+const MAX_AI_SKILLS = 15;
+const MIN_AI_TITLE_LENGTH = 2;
+const MIN_DESCRIPTION_LENGTH = 20;
+
+type Intent = "draft" | "publish" | "save";
+
+interface JobFormState {
+  title: string;
+  description: string;
+  requirements: string;
+  responsibilities: string;
+  location: string;
+  employmentType: EmploymentType;
+  experienceLevel: ExperienceLevel;
+  educationLevel: EducationLevel;
+  categoryId: string;
+  skills: string[];
+  min: string;
+  max: string;
+  deadline: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                         Helpers                                            */
+/* -------------------------------------------------------------------------- */
+
 const idOf = (value: string | { _id: string }) =>
   typeof value === "string" ? value : value._id;
 
-type Intent = "draft" | "publish" | "save";
+function splitLines(value: string) {
+  const items = value
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return items.length ? items : ["See job description"];
+}
+
+function jobToForm(job?: Job): JobFormState {
+  return {
+    title: job?.title ?? "",
+    description: job?.description ?? "",
+    requirements: job?.requirements.join("\n") ?? "",
+    responsibilities: job?.responsibilities.join("\n") ?? "",
+    location: job?.location ?? "",
+    employmentType: job?.employmentType ?? "full-time",
+    experienceLevel: job?.experienceLevel ?? "mid",
+    educationLevel: job?.educationLevel ?? "bachelor",
+    categoryId: job ? idOf(job.categoryId) : "",
+    skills: job?.skills.map(idOf) ?? [],
+    min: job?.salary?.minimum?.toString() ?? "",
+    max: job?.salary?.maximum?.toString() ?? "",
+    deadline: job?.deadline ? job.deadline.slice(0, 10) : "",
+  };
+}
+
+function buildJobPayload(form: JobFormState, currency: string) {
+  return {
+    title: form.title,
+    description: form.description,
+    requirements: splitLines(form.requirements),
+    responsibilities: splitLines(form.responsibilities),
+    location: form.location,
+    employmentType: form.employmentType,
+    experienceLevel: form.experienceLevel,
+    educationLevel: form.educationLevel,
+    categoryId: form.categoryId,
+    skills: form.skills,
+    ...(form.min || form.max
+      ? {
+          salary: {
+            minimum: form.min ? Number(form.min) : undefined,
+            maximum: form.max ? Number(form.max) : undefined,
+            currency,
+          },
+        }
+      : {}),
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/*                         Route components                                   */
+/* -------------------------------------------------------------------------- */
 
 export function PostJobPage() {
   return <JobForm />;
@@ -44,37 +151,28 @@ export function EditJobPage() {
   return <JobForm key={query.data._id} job={query.data} />;
 }
 
+/* -------------------------------------------------------------------------- */
+/*                         Form                                               */
+/* -------------------------------------------------------------------------- */
+
 function JobForm({ job }: { job?: Job }) {
   const editing = Boolean(job);
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [title, setTitle] = useState(job?.title ?? "");
-  const [description, setDescription] = useState(job?.description ?? "");
-  const [requirements, setRequirements] = useState(
-    job?.requirements.join("\n") ?? "",
-  );
-  const [responsibilities, setResponsibilities] = useState(
-    job?.responsibilities.join("\n") ?? "",
-  );
-  const [location, setLocation] = useState(job?.location ?? "");
-  const [employmentType, setEmploymentType] = useState<EmploymentType>(
-    job?.employmentType ?? "full-time",
-  );
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(
-    job?.experienceLevel ?? "mid",
-  );
-  const [educationLevel, setEducationLevel] = useState<EducationLevel>(
-    job?.educationLevel ?? "bachelor",
-  );
-  const [categoryId, setCategoryId] = useState(job ? idOf(job.categoryId) : "");
-  const [skills, setSkills] = useState<string[]>(job?.skills.map(idOf) ?? []);
-  const [min, setMin] = useState(job?.salary?.minimum?.toString() ?? "");
-  const [max, setMax] = useState(job?.salary?.maximum?.toString() ?? "");
-  const initialDeadline = job?.deadline ? job.deadline.slice(0, 10) : "";
-  const [deadline, setDeadline] = useState(initialDeadline);
+  const [form, setForm] = useState<JobFormState>(() => jobToForm(job));
   const [error, setError] = useState("");
+  const [aiNotice, setAiNotice] = useState("");
+
+  const initialDeadline = job?.deadline ? job.deadline.slice(0, 10) : "";
+
+  const setField = <K extends keyof JobFormState>(
+    key: K,
+    value: JobFormState[K],
+  ) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  /* ---------- Reference data ---------- */
 
   const categories = useQuery({
     queryKey: queryKeys.categories,
@@ -88,6 +186,7 @@ function JobForm({ job }: { job?: Job }) {
     queryKey: queryKeys.employers,
     queryFn: () => catalogService.employers().then((r) => r.data ?? []),
   });
+
   const company = findMyEmployer(employers.data ?? [], user?._id);
   const verified = company?.verificationStatus === "verified";
   const showUnverified = !employers.isLoading && !verified;
@@ -97,6 +196,17 @@ function JobForm({ job }: { job?: Job }) {
     editing &&
     (status === "draft" || status === "closed" || status === "expired");
 
+  const selectedSkillNames = useMemo(() => {
+    const namesById = new Map(
+      (skillList.data ?? []).map((skill) => [skill._id, skill.name]),
+    );
+    return form.skills
+      .map((id) => namesById.get(id))
+      .filter((name): name is string => Boolean(name));
+  }, [skillList.data, form.skills]);
+
+  /* ---------- Save / publish ---------- */
+
   const save = useMutation({
     mutationFn: async (intent: Intent) => {
       if (!verified) {
@@ -104,46 +214,31 @@ function JobForm({ job }: { job?: Job }) {
           "Your employer account must be verified before you can post jobs.",
         );
       }
-      if (!company?._id)
+      if (!company?._id) {
         throw new Error("No employer profile found for this account.");
-      if (description.trim().length < 20) {
-        throw new Error("Description must be at least 20 characters.");
+      }
+      if (form.description.trim().length < MIN_DESCRIPTION_LENGTH) {
+        throw new Error(
+          `Description must be at least ${MIN_DESCRIPTION_LENGTH} characters.`,
+        );
       }
 
-      const base = {
-        title,
-        description,
-        requirements: splitLines(requirements),
-        responsibilities: splitLines(responsibilities),
-        location,
-        employmentType,
-        experienceLevel,
-        educationLevel,
-        categoryId,
-        skills,
-        ...(min || max
-          ? {
-              salary: {
-                minimum: min ? Number(min) : undefined,
-                maximum: max ? Number(max) : undefined,
-                currency: job?.salary?.currency ?? "USD",
-              },
-            }
-          : {}),
-      };
+      const base = buildJobPayload(form, job?.salary?.currency ?? "USD");
 
       if (!job) {
         return jobsService.create({
           ...base,
           companyId: company._id,
-          deadline: deadline || undefined,
+          deadline: form.deadline || undefined,
           status: intent === "publish" ? "published" : "draft",
         });
       }
 
       await jobsService.update(job._id, {
         ...base,
-        ...(deadline && deadline !== initialDeadline ? { deadline } : {}),
+        ...(form.deadline && form.deadline !== initialDeadline
+          ? { deadline: form.deadline }
+          : {}),
       });
       if (intent === "publish") {
         return jobsService.updateStatus(job._id, "published");
@@ -152,14 +247,75 @@ function JobForm({ job }: { job?: Job }) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["jobs"] });
-      if (job)
+      if (job) {
         await queryClient.invalidateQueries({
           queryKey: queryKeys.job(job._id),
         });
+      }
       await navigate("/employer");
     },
     onError: (err: Error) => setError(err.message),
   });
+
+  /* ---------- AI generation ---------- */
+
+  const generate = useMutation({
+    mutationFn: () =>
+      jobsService.generateDescription({
+        title: form.title.trim(),
+        skills: selectedSkillNames,
+        experienceLevel: form.experienceLevel,
+        employmentType: form.employmentType,
+      }),
+    onSuccess: (res) => {
+      setForm((prev) => ({
+        ...prev,
+        description: res.data.description,
+        requirements: res.data.requirements.join("\n"),
+        responsibilities: res.data.responsibilities.join("\n"),
+      }));
+      setError("");
+      setAiNotice("AI draft generated. Review and edit it before publishing.");
+    },
+    onError: (err: Error) => {
+      setAiNotice("");
+      setError(err.message);
+    },
+  });
+
+  const generateHint = !verified
+    ? "Your employer account must be verified to use this."
+    : form.title.trim().length < MIN_AI_TITLE_LENGTH
+      ? "Enter a job title first."
+      : selectedSkillNames.length === 0
+        ? "Select at least one skill."
+        : selectedSkillNames.length > MAX_AI_SKILLS
+          ? `Select no more than ${MAX_AI_SKILLS} skills.`
+          : "";
+
+  const handleGenerate = () => {
+    const hasContent =
+      form.description.trim() ||
+      form.requirements.trim() ||
+      form.responsibilities.trim();
+
+    if (
+      hasContent &&
+      !window.confirm(
+        "Replace the current description, requirements and responsibilities with AI-generated content?",
+      )
+    ) {
+      return;
+    }
+
+    setError("");
+    setAiNotice("");
+    generate.mutate();
+  };
+
+  /* ---------- Render ---------- */
+
+  const busy = save.isPending || generate.isPending;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
@@ -180,6 +336,7 @@ function JobForm({ job }: { job?: Job }) {
           Verified employers publish instantly, with no admin approval needed.
           Save as a draft to finish later.
         </p>
+
         {showUnverified ? (
           <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
             Your employer account must be verified by an admin before you can
@@ -192,92 +349,77 @@ function JobForm({ job }: { job?: Job }) {
             cannot be published.
           </p>
         ) : null}
+
+        <AiAssistPanel
+          disabled={Boolean(generateHint) || generate.isPending}
+          pending={generate.isPending}
+          hint={generateHint}
+          notice={aiNotice}
+          onGenerate={handleGenerate}
+        />
+
         <Field label="Job Title">
           <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={form.title}
+            onChange={(e) => setField("title", e.target.value)}
             required
           />
         </Field>
         <Field label="Description">
           <Textarea
             rows={5}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={form.description}
+            onChange={(e) => setField("description", e.target.value)}
             required
           />
         </Field>
         <Field label="Requirements (one per line)">
           <Textarea
             rows={4}
-            value={requirements}
-            onChange={(e) => setRequirements(e.target.value)}
+            value={form.requirements}
+            onChange={(e) => setField("requirements", e.target.value)}
             required
           />
         </Field>
         <Field label="Responsibilities (one per line)">
           <Textarea
             rows={4}
-            value={responsibilities}
-            onChange={(e) => setResponsibilities(e.target.value)}
+            value={form.responsibilities}
+            onChange={(e) => setField("responsibilities", e.target.value)}
             required
           />
         </Field>
+
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Location">
             <Input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              value={form.location}
+              onChange={(e) => setField("location", e.target.value)}
               required
             />
           </Field>
-          <Field label="Employment type">
-            <Select
-              value={employmentType}
-              onChange={(e) =>
-                setEmploymentType(e.target.value as EmploymentType)
-              }
-            >
-              <option value="full-time">Full-time</option>
-              <option value="part-time">Part-time</option>
-              <option value="contract">Contract</option>
-              <option value="internship">Internship</option>
-              <option value="freelance">Freelance</option>
-            </Select>
-          </Field>
-          <Field label="Experience level">
-            <Select
-              value={experienceLevel}
-              onChange={(e) =>
-                setExperienceLevel(e.target.value as ExperienceLevel)
-              }
-            >
-              <option value="entry">Entry</option>
-              <option value="junior">Junior</option>
-              <option value="mid">Mid</option>
-              <option value="senior">Senior</option>
-              <option value="lead">Lead</option>
-            </Select>
-          </Field>
-          <Field label="Education">
-            <Select
-              value={educationLevel}
-              onChange={(e) =>
-                setEducationLevel(e.target.value as EducationLevel)
-              }
-            >
-              <option value="high-school">High school</option>
-              <option value="certificate">Certificate</option>
-              <option value="diploma">Diploma</option>
-              <option value="bachelor">Bachelor</option>
-              <option value="master">Master</option>
-              <option value="phd">PhD</option>
-            </Select>
-          </Field>
+          <OptionSelect
+            label="Employment type"
+            value={form.employmentType}
+            options={EMPLOYMENT_TYPES}
+            onChange={(value) => setField("employmentType", value)}
+          />
+          <OptionSelect
+            label="Experience level"
+            value={form.experienceLevel}
+            options={EXPERIENCE_LEVELS}
+            onChange={(value) => setField("experienceLevel", value)}
+          />
+          <OptionSelect
+            label="Education"
+            value={form.educationLevel}
+            options={EDUCATION_LEVELS}
+            onChange={(value) => setField("educationLevel", value)}
+          />
           <Field label="Category">
             <Select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
+              value={form.categoryId}
+              onChange={(e) => setField("categoryId", e.target.value)}
               required
             >
               <option value="">Select category</option>
@@ -291,32 +433,34 @@ function JobForm({ job }: { job?: Job }) {
           <Field label="Deadline">
             <Input
               type="date"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
+              value={form.deadline}
+              onChange={(e) => setField("deadline", e.target.value)}
             />
           </Field>
           <Field label="Min salary">
             <Input
               type="number"
-              value={min}
-              onChange={(e) => setMin(e.target.value)}
+              value={form.min}
+              onChange={(e) => setField("min", e.target.value)}
             />
           </Field>
           <Field label="Max salary">
             <Input
               type="number"
-              value={max}
-              onChange={(e) => setMax(e.target.value)}
+              value={form.max}
+              onChange={(e) => setField("max", e.target.value)}
             />
           </Field>
         </div>
+
         <Field label="Skills">
           <select
             multiple
             className="h-32 w-full rounded-2xl border border-line p-3 text-sm"
-            value={skills}
+            value={form.skills}
             onChange={(e) =>
-              setSkills(
+              setField(
+                "skills",
                 Array.from(e.target.selectedOptions).map(
                   (option) => option.value,
                 ),
@@ -330,15 +474,13 @@ function JobForm({ job }: { job?: Job }) {
             ))}
           </select>
         </Field>
+
         {error ? <p className="text-sm text-rose-500">{error}</p> : null}
+
         <div className="flex flex-wrap gap-3">
           {editing ? (
             <>
-              <Button
-                type="submit"
-                value="save"
-                disabled={save.isPending || !verified}
-              >
+              <Button type="submit" value="save" disabled={busy || !verified}>
                 {save.isPending ? "Saving…" : "Save changes"}
               </Button>
               {canPublishFromEdit ? (
@@ -346,7 +488,7 @@ function JobForm({ job }: { job?: Job }) {
                   type="submit"
                   value="publish"
                   variant="secondary"
-                  disabled={save.isPending || !verified}
+                  disabled={busy || !verified}
                 >
                   Save &amp; Publish
                 </Button>
@@ -354,18 +496,14 @@ function JobForm({ job }: { job?: Job }) {
             </>
           ) : (
             <>
-              <Button
-                type="submit"
-                value="publish"
-                disabled={save.isPending || !verified}
-              >
+              <Button type="submit" value="publish" disabled={busy || !verified}>
                 {save.isPending ? "Publishing…" : "Publish Job"}
               </Button>
               <Button
                 type="submit"
                 value="draft"
                 variant="secondary"
-                disabled={save.isPending || !verified}
+                disabled={busy || !verified}
               >
                 Save as Draft
               </Button>
@@ -373,6 +511,7 @@ function JobForm({ job }: { job?: Job }) {
           )}
         </div>
       </form>
+
       <aside className="rounded-3xl bg-gradient-to-b from-brand-500 to-indigo-700 p-6 text-white">
         <div className="grid h-40 place-items-center rounded-3xl bg-white/10 text-5xl">
           💼
@@ -387,10 +526,83 @@ function JobForm({ job }: { job?: Job }) {
   );
 }
 
-function splitLines(value: string) {
-  const items = value
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  return items.length ? items : ["See job description"];
+/* -------------------------------------------------------------------------- */
+/*                         Sub-components                                     */
+/* -------------------------------------------------------------------------- */
+
+function AiAssistPanel({
+  disabled,
+  pending,
+  hint,
+  notice,
+  onGenerate,
+}: {
+  disabled: boolean;
+  pending: boolean;
+  hint: string;
+  notice: string;
+  onGenerate: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-sm font-bold text-brand-700">
+            <Sparkles className="h-4 w-4" /> AI job description
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            Uses the title, selected skills (1–{MAX_AI_SKILLS}), experience
+            level and employment type. You can edit everything afterwards.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+          onClick={onGenerate}
+        >
+          {pending ? (
+            <>
+              <LoaderCircle className="h-4 w-4 animate-spin" /> Generating…
+            </>
+          ) : (
+            "Generate with AI"
+          )}
+        </Button>
+      </div>
+      {hint && !pending ? (
+        <p className="mt-2 text-xs text-amber-700">{hint}</p>
+      ) : null}
+      {notice ? (
+        <p role="status" className="mt-2 text-xs font-semibold text-brand-700">
+          {notice}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function OptionSelect<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: readonly T[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <Field label={label}>
+      <Select value={value} onChange={(e) => onChange(e.target.value as T)}>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {titleCase(option)}
+          </option>
+        ))}
+      </Select>
+    </Field>
+  );
 }
