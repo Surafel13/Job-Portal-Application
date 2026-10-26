@@ -23,6 +23,8 @@ import AdminRouter from "../modules/admin/admin.route.js"
 
 import recommendationRouter from "../modules/ai/recommendation/recommendation.route.js"
 import semanticSearchRouter from "../modules/ai/semanticSearch/semanticSearch.route.js"
+import jobDescriptionRouter from "../modules/ai/jobDescription/jobDescription.route.js";
+
 
 
 const router: Router = Router();
@@ -45,5 +47,6 @@ router.use("/conversations", conversationRouter)
 router.use("/admin", AdminRouter)
 router.use("/recommendation", recommendationRouter)
 router.use("/semantic-search", semanticSearchRouter)
+router.use("/job-description", jobDescriptionRouter);
 
 export default router
