@@ -226,15 +226,15 @@ export function JobDetailsPage() {
 
   if (jobQuery.isLoading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
-        <Spinner label="Loading job" />
+      <div className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
+        <Spinner label="Loading job details" />
       </div>
     );
   }
 
   if (jobQuery.isError) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-10">
+      <div className="mx-auto max-w-3xl px-4 py-16">
         <ErrorState
           message={(jobQuery.error as Error).message}
           onRetry={() => void jobQuery.refetch()}
@@ -246,10 +246,10 @@ export function JobDetailsPage() {
   const job = jobQuery.data;
   if (!job) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-10">
+      <div className="mx-auto max-w-3xl px-4 py-16">
         <EmptyState
           title="Job not found"
-          description="This listing may have been removed."
+          description="This listing may have been removed or is no longer available."
           action={
             <Link to="/jobs">
               <Button variant="secondary">Back to jobs</Button>
@@ -267,86 +267,90 @@ export function JobDetailsPage() {
   const applicationSubmitted = message === "Application submitted successfully.";
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-8">
-      {/* Main column */}
-      <div className="min-w-0">
+    <div className="min-h-screen bg-surface/40 pb-16 pt-6">
+      <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <button
           type="button"
           onClick={() => void navigate(-1)}
-          className="mb-4 inline-flex items-center gap-2 text-sm text-muted transition hover:text-ink"
+          className="group mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-ink"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
           Back to jobs
         </button>
 
-        <JobHeader
-          job={job}
-          companyName={company?.name}
-          categoryName={category?.name}
-          isWorker={isWorker}
-          onSave={() => save.mutate()}
-          onShare={() => void navigator.clipboard.writeText(window.location.href)}
-        />
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+          {/* Main Content Column */}
+          <div className="min-w-0 space-y-6">
+            <JobHeader
+              job={job}
+              companyName={company?.name}
+              categoryName={category?.name}
+              isWorker={isWorker}
+              onSave={() => save.mutate()}
+              onShare={() => void navigator.clipboard.writeText(window.location.href)}
+            />
 
-        <JobContent job={job} company={company} skills={skills} />
+            <JobContent job={job} company={company} skills={skills} />
+          </div>
+
+          {/* Sticky Sidebar Column */}
+          <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
+            <JobMetaCard job={job} />
+
+            <ApplyCard
+              isWorker={isWorker}
+              workerLoading={worker.isLoading}
+              workerError={worker.isError}
+              canApply={canApply}
+              profileCompletion={profileCompletion}
+              message={message}
+              onRetryWorker={() => void worker.refetch()}
+              onOpenApply={() => {
+                setMessage("");
+                setIsApplyPanelOpen(true);
+              }}
+            />
+          </aside>
+        </div>
+
+        {/* Apply Drawer */}
+        <AnimatePresence>
+          {isApplyPanelOpen ? (
+            <ApplyPanel
+              job={job}
+              companyName={company?.name}
+              userName={user?.fullName}
+              location={worker.data?.location ?? user?.location}
+              profileCompletion={profileCompletion}
+              canApply={canApply}
+              coverLetter={coverLetter}
+              resumeId={resumeId}
+              resumeFile={resumeFile}
+              resumes={resumes.data ?? []}
+              resumesLoading={resumes.isLoading}
+              resumesError={resumes.isError}
+              message={message}
+              applicationSubmitted={applicationSubmitted}
+              isPending={apply.isPending}
+              onClose={() => {
+                if (!apply.isPending) setIsApplyPanelOpen(false);
+              }}
+              onCoverLetterChange={setCoverLetter}
+              onSelectResume={selectResume}
+              onSelectResumeFile={selectResumeFile}
+              onClearResumeFile={() => setResumeFile(null)}
+              onRetryResumes={() => void resumes.refetch()}
+              onSubmit={submitApplication}
+            />
+          ) : null}
+        </AnimatePresence>
       </div>
-
-      {/* Sidebar */}
-      <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-        <JobMetaCard job={job} />
-
-        <ApplyCard
-          isWorker={isWorker}
-          workerLoading={worker.isLoading}
-          workerError={worker.isError}
-          canApply={canApply}
-          profileCompletion={profileCompletion}
-          message={message}
-          onRetryWorker={() => void worker.refetch()}
-          onOpenApply={() => {
-            setMessage("");
-            setIsApplyPanelOpen(true);
-          }}
-        />
-      </aside>
-
-      {/* Apply drawer */}
-      <AnimatePresence>
-        {isApplyPanelOpen ? (
-          <ApplyPanel
-            job={job}
-            companyName={company?.name}
-            userName={user?.fullName}
-            location={worker.data?.location ?? user?.location}
-            profileCompletion={profileCompletion}
-            canApply={canApply}
-            coverLetter={coverLetter}
-            resumeId={resumeId}
-            resumeFile={resumeFile}
-            resumes={resumes.data ?? []}
-            resumesLoading={resumes.isLoading}
-            resumesError={resumes.isError}
-            message={message}
-            applicationSubmitted={applicationSubmitted}
-            isPending={apply.isPending}
-            onClose={() => {
-              if (!apply.isPending) setIsApplyPanelOpen(false);
-            }}
-            onCoverLetterChange={setCoverLetter}
-            onSelectResume={selectResume}
-            onSelectResumeFile={selectResumeFile}
-            onClearResumeFile={() => setResumeFile(null)}
-            onRetryResumes={() => void resumes.refetch()}
-            onSubmit={submitApplication}
-          />
-        ) : null}
-      </AnimatePresence>
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/*                         Header                                             */
+/*                         Header Component                                   */
 /* -------------------------------------------------------------------------- */
 
 function JobHeader({
@@ -364,21 +368,21 @@ function JobHeader({
   onSave: () => void;
   onShare: () => void;
 }) {
-  const initial = (companyName ?? "J").slice(0, 1);
+  const initial = (companyName ?? "J").slice(0, 1).toUpperCase();
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 gap-4">
-          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-brand-50 text-2xl font-bold text-brand-700">
+    <div className="relative overflow-hidden rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line sm:p-8">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 gap-5">
+          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-brand-50 text-2xl font-bold text-brand-700 shadow-inner sm:h-20 sm:w-20 sm:text-3xl">
             {initial}
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
               {job.title}
             </h1>
-            <p className="mt-1 text-muted">{companyName ?? "Company"}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <p className="mt-1 text-base font-medium text-muted">{companyName ?? "Company"}</p>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <Badge>{titleCase(job.employmentType)}</Badge>
               {job.experienceLevel ? (
                 <Badge tone="slate">{titleCase(job.experienceLevel)}</Badge>
@@ -388,20 +392,20 @@ function JobHeader({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2 pt-2 sm:pt-0">
           {isWorker ? (
             <Link to={`/messages?jobId=${job._id}`}>
-              <Button variant="outline" className="gap-1.5">
+              <Button variant="outline" className="gap-2">
                 <MessageSquare className="h-4 w-4" />
-                Message employer
+                Message
               </Button>
             </Link>
           ) : null}
-          <Button variant="secondary" onClick={onSave} className="gap-1.5">
+          <Button variant="secondary" onClick={onSave} className="gap-2">
             <Bookmark className="h-4 w-4" />
             Save
           </Button>
-          <Button variant="secondary" onClick={onShare} className="gap-1.5">
+          <Button variant="secondary" onClick={onShare} className="gap-2">
             <Share2 className="h-4 w-4" />
             Share
           </Button>
@@ -425,16 +429,16 @@ function JobContent({
   skills: ReturnType<typeof skillsOf>;
 }) {
   return (
-    <div className="mt-6 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line">
-      <nav className="flex gap-6 overflow-x-auto border-b border-line text-sm font-semibold">
+    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line sm:p-8">
+      <nav className="flex gap-8 overflow-x-auto border-b border-line text-sm font-semibold">
         {CONTENT_TABS.map((tab, index) => (
           <a
             key={tab.id}
             href={`#${tab.id}`}
             className={
               index === 0
-                ? "shrink-0 border-b-2 border-brand-600 py-3 text-brand-700"
-                : "shrink-0 py-3 text-muted transition hover:text-ink"
+                ? "shrink-0 border-b-2 border-brand-600 pb-3 text-brand-700"
+                : "shrink-0 pb-3 text-muted transition-colors hover:text-ink"
             }
           >
             {tab.label}
@@ -442,39 +446,39 @@ function JobContent({
         ))}
       </nav>
 
-      <section id="overview" className="pt-6">
-        <h2 className="text-lg font-bold">Job overview</h2>
-        <p className="mt-3 whitespace-pre-wrap leading-7 text-muted">
+      <section id="overview" className="pt-8">
+        <h2 className="text-xl font-bold tracking-tight text-ink">Job overview</h2>
+        <p className="mt-4 whitespace-pre-wrap leading-relaxed text-muted">
           {job.description}
         </p>
       </section>
 
-      <section id="responsibilities" className="pt-8">
-        <h2 className="text-lg font-bold">Responsibilities</h2>
+      <section id="responsibilities" className="pt-10">
+        <h2 className="text-xl font-bold tracking-tight text-ink">Responsibilities</h2>
         {job.responsibilities?.length ? (
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-muted">
+          <ul className="mt-4 list-disc space-y-3 pl-5 text-muted leading-relaxed">
             {job.responsibilities.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         ) : (
-          <p className="mt-3 text-sm text-muted">No responsibilities listed.</p>
+          <p className="mt-4 text-sm text-muted">No responsibilities listed.</p>
         )}
       </section>
 
-      <section id="requirements" className="pt-8">
-        <h2 className="text-lg font-bold">Requirements</h2>
+      <section id="requirements" className="pt-10">
+        <h2 className="text-xl font-bold tracking-tight text-ink">Requirements</h2>
         {job.requirements?.length ? (
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-muted">
+          <ul className="mt-4 list-disc space-y-3 pl-5 text-muted leading-relaxed">
             {job.requirements.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         ) : (
-          <p className="mt-3 text-sm text-muted">No requirements listed.</p>
+          <p className="mt-4 text-sm text-muted">No requirements listed.</p>
         )}
         {skills.length > 0 ? (
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-6 flex flex-wrap gap-2">
             {skills.map((skill) => (
               <Badge key={skill._id} tone="slate">
                 {skill.name}
@@ -484,20 +488,20 @@ function JobContent({
         ) : null}
       </section>
 
-      <section id="benefits" className="pt-8">
-        <h2 className="text-lg font-bold">Company</h2>
-        <p className="mt-2 leading-7 text-muted">
+      <section id="benefits" className="pt-10">
+        <h2 className="text-xl font-bold tracking-tight text-ink">About the company</h2>
+        <p className="mt-4 leading-relaxed text-muted">
           {company?.description ??
-            "Join a team building with modern technologies."}
+            "Join an innovative team building impactful modern solutions."}
         </p>
         {company?.website ? (
           <a
-            className="mt-2 inline-block text-sm font-medium text-brand-700 hover:underline"
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"
             href={company.website}
             target="_blank"
             rel="noreferrer"
           >
-            {company.website}
+            Visit website →
           </a>
         ) : null}
       </section>
@@ -511,24 +515,32 @@ function JobContent({
 
 function JobMetaCard({ job }: { job: Job }) {
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-line">
-      <p className="text-sm text-muted">Salary</p>
-      <p className="mt-1 text-xl font-extrabold text-emerald-600">
-        {formatSalary(job.salary)}
-      </p>
-      <div className="mt-4 space-y-3 text-sm text-muted">
-        <p className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 shrink-0" />
-          {job.location}
+    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line">
+      <div className="border-b border-line pb-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted">Compensation</p>
+        <p className="mt-1 text-2xl font-extrabold text-emerald-600">
+          {formatSalary(job.salary)}
         </p>
-        <p className="flex items-center gap-2">
-          <Briefcase className="h-4 w-4 shrink-0" />
-          {titleCase(job.employmentType)}
-        </p>
-        <p className="flex items-center gap-2">
-          <Clock className="h-4 w-4 shrink-0" />
-          Deadline {formatDate(job.deadline)}
-        </p>
+      </div>
+      <div className="mt-4 space-y-4 text-sm font-medium text-muted">
+        <div className="flex items-center gap-3">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface text-ink">
+            <MapPin className="h-4 w-4" />
+          </div>
+          <span>{job.location}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface text-ink">
+            <Briefcase className="h-4 w-4" />
+          </div>
+          <span>{titleCase(job.employmentType)}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface text-ink">
+            <Clock className="h-4 w-4" />
+          </div>
+          <span>Deadline {formatDate(job.deadline)}</span>
+        </div>
       </div>
     </div>
   );
@@ -554,17 +566,17 @@ function ApplyCard({
   onOpenApply: () => void;
 }) {
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-line">
-      <h3 className="font-bold">Apply now</h3>
+    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line">
+      <h3 className="text-lg font-bold text-ink">Ready to apply?</h3>
 
       {!isWorker ? (
         <p className="mt-2 text-sm text-muted">
-          Sign in as a worker to submit an application.
+          Please sign in with a worker account to submit your application.
         </p>
       ) : (
-        <div className="mt-3 space-y-3">
+        <div className="mt-4 space-y-4">
           {workerLoading ? (
-            <p className="text-sm text-muted">Checking your profile…</p>
+            <p className="text-sm text-muted animate-pulse">Checking your profile eligibility…</p>
           ) : workerError ? (
             <p className="text-sm text-rose-600">
               Could not load your worker profile.{" "}
@@ -577,14 +589,25 @@ function ApplyCard({
               </button>
             </p>
           ) : !canApply ? (
-            <p className="text-sm text-muted">
-              Your profile is {profileCompletion}% complete. Complete at least
-              80% before applying.
+            <div className="space-y-2">
+              <p className="text-sm text-muted">
+                Your profile is <span className="font-semibold text-ink">{profileCompletion}%</span> complete. You need at least 80% completion to apply.
+              </p>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
+                <div
+                  className="h-full rounded-full bg-brand-600 transition-all"
+                  style={{ width: `${Math.min(profileCompletion, 100)}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-emerald-600 font-medium flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4" /> Profile verified for application
             </p>
-          ) : null}
+          )}
 
           <Button
-            className="w-full"
+            className="w-full shadow-sm"
             onClick={onOpenApply}
             disabled={workerLoading || workerError}
           >
@@ -594,7 +617,7 @@ function ApplyCard({
       )}
 
       {message && message !== "Application submitted successfully." ? (
-        <p className="mt-3 text-sm text-brand-700">{message}</p>
+        <p className="mt-4 text-sm font-medium text-brand-700">{message}</p>
       ) : null}
     </div>
   );
@@ -661,11 +684,11 @@ function ApplyPanel({
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex justify-end bg-ink/40 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex justify-end bg-ink/40 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.18 }}
+      transition={{ duration: 0.2 }}
     >
       <button
         type="button"
@@ -682,27 +705,27 @@ function ApplyPanel({
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
-        transition={{ type: "spring", damping: 30, stiffness: 280 }}
+        transition={{ type: "spring", damping: 30, stiffness: 300 }}
       >
-        <header className="flex items-start justify-between border-b border-line px-5 py-5 sm:px-7">
+        <header className="flex items-start justify-between border-b border-line px-6 py-6 sm:px-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-brand-700">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-700">
               Job application
-            </p>
+            </span>
             <h2
               id="create-application-title"
               className="mt-1 text-xl font-extrabold text-ink sm:text-2xl"
             >
-              Create application
+              Submit Application
             </h2>
-            <p className="mt-1 line-clamp-2 text-sm text-muted">
+            <p className="mt-1 line-clamp-1 text-sm text-muted">
               {job.title} · {companyName ?? "Company"}
             </p>
           </div>
           <button
             type="button"
             aria-label="Close application panel"
-            className="rounded-full p-2 text-muted transition hover:bg-surface hover:text-ink disabled:opacity-50"
+            className="rounded-full p-2 text-muted transition-colors hover:bg-surface hover:text-ink disabled:opacity-50"
             onClick={onClose}
             disabled={isPending}
           >
@@ -712,51 +735,53 @@ function ApplyPanel({
 
         {applicationSubmitted ? (
           <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-            <CheckCircle2 className="h-14 w-14 text-emerald-500" />
-            <h3 className="mt-4 text-xl font-bold text-ink">
-              Application submitted
+            <div className="grid h-20 w-20 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+              <CheckCircle2 className="h-10 w-10" />
+            </div>
+            <h3 className="mt-6 text-2xl font-bold text-ink">
+              Application submitted!
             </h3>
-            <p className="mt-2 max-w-sm text-sm text-muted">
-              Your application for {job.title} has been submitted successfully.
+            <p className="mt-2 max-w-sm text-sm text-muted leading-relaxed">
+              Your application for <span className="font-medium text-ink">{job.title}</span> has been successfully sent to the employer.
             </p>
-            <Button className="mt-6" onClick={onClose}>
+            <Button className="mt-8 px-8" onClick={onClose}>
               Done
             </Button>
           </div>
         ) : (
           <form className="flex min-h-0 flex-1 flex-col" onSubmit={onSubmit}>
-            <div className="flex-1 space-y-6 overflow-y-auto px-5 py-6 sm:px-7">
-              {/* Applicant summary */}
-              <section className="rounded-2xl bg-surface p-4">
+            <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6 sm:px-8">
+              {/* Applicant Summary Card */}
+              <section className="rounded-2xl bg-surface p-5 ring-1 ring-line/60">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted">
                       Applying as
-                    </p>
-                    <p className="mt-1 font-bold text-ink">
+                    </span>
+                    <p className="mt-1 text-base font-bold text-ink">
                       {userName ?? "Worker"}
                     </p>
-                    <p className="mt-0.5 text-sm text-muted">
-                      {location ?? "Location not set"}
+                    <p className="mt-0.5 text-xs text-muted flex items-center gap-1">
+                      <MapPin className="h-3 w-3" /> {location ?? "Location not set"}
                     </p>
                   </div>
                   <Link
                     to="/worker/profile"
                     onClick={onClose}
-                    className="text-sm font-semibold text-brand-700 hover:text-brand-800"
+                    className="text-xs font-semibold text-brand-700 hover:text-brand-800"
                   >
                     Edit profile
                   </Link>
                 </div>
-                <div className="mt-4">
-                  <div className="flex justify-between text-xs">
+                <div className="mt-4 pt-3 border-t border-line/60">
+                  <div className="flex justify-between text-xs font-medium">
                     <span className="text-muted">Profile completion</span>
                     <span className="font-bold text-ink">
                       {profileCompletion}%
                     </span>
                   </div>
                   <div
-                    className="mt-2 h-2 overflow-hidden rounded-full bg-white"
+                    className="mt-2 h-2 overflow-hidden rounded-full bg-white ring-1 ring-line/50"
                     role="progressbar"
                     aria-label="Worker profile completion"
                     aria-valuemin={0}
@@ -773,8 +798,8 @@ function ApplyPanel({
                 </div>
               </section>
 
-              {/* Resume select */}
-              <div>
+              {/* Resume Select */}
+              <div className="space-y-2">
                 <Field label="Select resume">
                   <Select
                     value={resumeFile ? "" : resumeId}
@@ -783,7 +808,7 @@ function ApplyPanel({
                     required={!resumeFile}
                     aria-describedby="resume-help"
                   >
-                    <option value="">Choose a saved resume</option>
+                    <option value="">Choose from your saved resumes</option>
                     {resumes.map((resume) => (
                       <option key={resume._id} value={resume._id}>
                         {resume.originalName}
@@ -791,16 +816,16 @@ function ApplyPanel({
                     ))}
                   </Select>
                 </Field>
-                <p id="resume-help" className="mt-2 text-xs text-muted">
-                  Select a resume from your profile or upload a new one below.
+                <p id="resume-help" className="text-xs text-muted">
+                  Choose a previously saved resume or upload a fresh copy below.
                 </p>
                 {resumesLoading ? (
-                  <p className="mt-2 flex items-center gap-2 text-xs text-muted">
+                  <p className="flex items-center gap-2 text-xs text-muted">
                     <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-                    Loading your saved resumes…
+                    Loading saved resumes…
                   </p>
                 ) : resumesError ? (
-                  <div className="mt-2 flex items-center justify-between gap-2 text-xs text-rose-600">
+                  <div className="flex items-center justify-between gap-2 text-xs text-rose-600">
                     <span>Could not load your saved resumes.</span>
                     <button
                       type="button"
@@ -811,33 +836,33 @@ function ApplyPanel({
                     </button>
                   </div>
                 ) : resumes.length === 0 ? (
-                  <p className="mt-2 text-xs text-muted">
-                    No saved resumes yet. Upload one below or{" "}
+                  <p className="text-xs text-muted">
+                    No saved resumes found. Upload one below or{" "}
                     <Link
                       to="/worker/profile"
                       onClick={onClose}
-                      className="font-semibold text-brand-700"
+                      className="font-semibold text-brand-700 hover:underline"
                     >
-                      manage your profile
+                      update your profile
                     </Link>
                     .
                   </p>
                 ) : null}
               </div>
 
-              {/* Upload */}
-              <div>
+              {/* Upload New Resume */}
+              <div className="space-y-2">
                 <label
                   htmlFor="application-resume-file"
-                  className="mb-2 block text-sm font-semibold text-ink"
+                  className="block text-sm font-semibold text-ink"
                 >
                   Upload a new resume
                 </label>
                 <label
                   htmlFor="application-resume-file"
-                  className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-brand-300 bg-brand-50/60 px-4 py-4 transition hover:bg-brand-50"
+                  className="flex cursor-pointer items-center gap-4 rounded-2xl border border-dashed border-brand-300 bg-brand-50/40 p-4 transition-colors hover:bg-brand-50/80"
                 >
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-brand-700">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white text-brand-700 shadow-sm">
                     {resumeFile ? (
                       <FileText className="h-5 w-5" />
                     ) : (
@@ -846,10 +871,10 @@ function ApplyPanel({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold text-ink">
-                      {resumeFile?.name ?? "Choose a PDF or DOCX file"}
+                      {resumeFile?.name ?? "Click to browse or drag file"}
                     </span>
                     <span className="mt-0.5 block text-xs text-muted">
-                      Maximum file size: 5MB
+                      PDF or DOCX (Max 5MB)
                     </span>
                   </span>
                 </label>
@@ -866,7 +891,7 @@ function ApplyPanel({
                 {resumeFile ? (
                   <button
                     type="button"
-                    className="mt-2 text-xs font-semibold text-rose-600 hover:text-rose-700"
+                    className="text-xs font-semibold text-rose-600 hover:text-rose-700"
                     onClick={onClearResumeFile}
                   >
                     Remove selected file
@@ -874,49 +899,52 @@ function ApplyPanel({
                 ) : null}
               </div>
 
-              {/* Cover letter */}
+              {/* Cover Letter */}
               <Field label="Cover letter (optional)">
                 <Textarea
-                  rows={6}
+                  rows={5}
                   maxLength={5000}
-                  placeholder="Tell the employer why you're a good fit for this role…"
+                  placeholder="Introduce yourself and highlight why you are a great fit..."
                   value={coverLetter}
                   onChange={(event) => onCoverLetterChange(event.target.value)}
                   className="resize-y"
                 />
-                <span className="mt-1 block text-right text-xs text-muted">
-                  {coverLetter.length}/5000
-                </span>
+                <div className="mt-1.5 flex justify-end">
+                  <span className="text-xs text-muted">
+                    {coverLetter.length}/5000 characters
+                  </span>
+                </div>
               </Field>
 
               {!canApply ? (
                 <div
                   role="alert"
-                  className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                  className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 leading-relaxed"
                 >
-                  Your profile must be at least 80% complete to apply. Uploading
-                  a resume may complete your profile.
-                  <Link
-                    to="/worker/profile"
-                    onClick={onClose}
-                    className="ml-1 font-semibold underline"
-                  >
-                    Complete your profile
-                  </Link>
+                  <span className="font-semibold">Notice:</span> Your profile must be at least 80% complete to apply. Uploading a resume may help complete your profile requirements.
+                  <div className="mt-2">
+                    <Link
+                      to="/worker/profile"
+                      onClick={onClose}
+                      className="font-semibold underline text-amber-900 hover:text-amber-950"
+                    >
+                      Complete your profile →
+                    </Link>
+                  </div>
                 </div>
               ) : null}
 
               {message && !applicationSubmitted ? (
                 <p
                   role="alert"
-                  className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700"
+                  className="rounded-2xl bg-rose-50 p-4 text-sm font-medium text-rose-700"
                 >
                   {message}
                 </p>
               ) : null}
             </div>
 
-            <footer className="border-t border-line bg-white px-5 py-4 sm:px-7">
+            <footer className="border-t border-line bg-white px-6 py-4 sm:px-8">
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <Button
                   type="button"
@@ -926,11 +954,11 @@ function ApplyPanel({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={!canSubmit}>
+                <Button type="submit" disabled={!canSubmit} className="gap-2">
                   {isPending ? (
                     <>
                       <LoaderCircle className="h-4 w-4 animate-spin" />
-                      Submitting…
+                      Submitting...
                     </>
                   ) : (
                     "Submit application"

@@ -17,4 +17,13 @@ router.post(
   jobDescriptionController.generate,
 );
 
+router.post(
+  "/generate/stream",
+  authMiddleware,
+  authorizeRoles("employer"),
+  aiGenerationRateLimitMiddleware,
+  validateBody(generateJobDescriptionSchema),
+  jobDescriptionController.stream,
+);
+
 export default router;

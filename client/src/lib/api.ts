@@ -4,6 +4,8 @@ import type { ApiResponse } from "../types/api";
 const TOKEN_KEY = "jobverse.accessToken";
 const REFRESH_KEY = "jobverse.refreshToken";
 
+export const API_BASE_URL: string = import.meta.env.VITE_API_URL ?? "/api/v1";
+
 export function getAccessToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -39,7 +41,7 @@ export class ApiClientError extends Error {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "/api/v1",
+  baseURL: API_BASE_URL,
   withCredentials: true,
   timeout: 20000,
 });
@@ -60,7 +62,7 @@ async function refreshAccessToken() {
 
   const response = await axios.post<
     ApiResponse<{ accessToken: string; refreshToken: string }>
-  >(`${import.meta.env.VITE_API_URL ?? "/api/v1"}/auth/refresh`, {
+  >(`${API_BASE_URL}/auth/refresh`, {
     refreshToken,
   });
 
@@ -70,26 +72,31 @@ async function refreshAccessToken() {
   return tokens.accessToken;
 }
 
+/** Shared, de-duplicated token refresh (also used by the SSE client). */
+export async function refreshSession(): Promise<string | null> {
+  try {
+    refreshing ??= refreshAccessToken().finally(() => {
+      refreshing = null;
+    });
+    return await refreshing;
+  } catch {
+    clearTokens();
+    return null;
+  }
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiResponse<unknown>>) => {
     const original = error.config as
-      | (InternalAxiosRequestConfig & { _retry?: boolean })
-      | undefined;
+      (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
 
     if (error.response?.status === 401 && original && !original._retry) {
       original._retry = true;
-      try {
-        refreshing ??= refreshAccessToken().finally(() => {
-          refreshing = null;
-        });
-        const token = await refreshing;
-        if (token) {
-          original.headers.Authorization = `Bearer ${token}`;
-          return api(original);
-        }
-      } catch {
-        clearTokens();
+      const token = await refreshSession();
+      if (token) {
+        original.headers.Authorization = `Bearer ${token}`;
+        return api(original);
       }
     }
 

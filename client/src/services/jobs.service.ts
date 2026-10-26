@@ -1,4 +1,6 @@
 import { request } from "../lib/api";
+import { ApiClientError } from "../lib/api";
+import { postSse } from "../lib/streamRequest";
 import type { PaginationMeta } from "../types/api";
 import type {
   Application,
@@ -71,6 +73,47 @@ export const jobsService = {
     request<GeneratedJobDescription>("post", "/job-description/generate", {
       data: payload,
     }),
+
+  streamDescription: async (
+    payload: {
+      title: string;
+      skills: string[];
+      experienceLevel: string;
+      employmentType: string;
+    },
+    handlers: { signal?: AbortSignal; onChunk: (text: string) => void },
+  ): Promise<GeneratedJobDescription> => {
+    const state: {
+      result?: GeneratedJobDescription;
+      failure?: ApiClientError;
+    } = {};
+
+    await postSse("/job-description/generate/stream", payload, {
+      signal: handlers.signal,
+      onEvent: (event, data) => {
+        if (event === "chunk") {
+          handlers.onChunk((data as { text: string }).text);
+        } else if (event === "done") {
+          state.result = data as GeneratedJobDescription;
+        } else if (event === "error") {
+          const err = data as { message?: string; statusCode?: number };
+          state.failure = new ApiClientError(
+            err.message ?? "Generation failed.",
+            err.statusCode ?? 500,
+          );
+        }
+      },
+    });
+
+    if (state.failure) throw state.failure;
+    if (!state.result) {
+      throw new ApiClientError(
+        "The AI stream ended unexpectedly. Please try again.",
+        502,
+      );
+    }
+    return state.result;
+  },
 };
 
 export const savedJobsService = {

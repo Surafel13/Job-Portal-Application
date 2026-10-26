@@ -320,11 +320,11 @@ export function MessagesPage() {
         )}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between border-b border-line p-4">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-ink">Messages</h1>
+        <div className="flex items-center justify-between border-b border-line p-5">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-extrabold tracking-tight text-ink">Messages</h1>
             {conversationsQuery.data?.meta?.totalItems ? (
-              <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-700">
+              <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-700 ring-1 ring-brand-100">
                 {conversationsQuery.data.meta.totalItems}
               </span>
             ) : null}
@@ -333,22 +333,22 @@ export function MessagesPage() {
             size="sm"
             variant="primary"
             onClick={() => setIsNewChatModalOpen(true)}
-            className="h-8 gap-1 px-3 text-xs"
+            className="h-9 gap-1.5 px-3.5 text-xs shadow-sm"
           >
-            <Plus className="h-3.5 w-3.5" /> New Chat
+            <Plus className="h-4 w-4" /> New Chat
           </Button>
         </div>
 
         {/* Search Input */}
-        <div className="border-b border-line p-3">
+        <div className="border-b border-line p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted" />
+            <Search className="absolute left-3.5 top-3 h-4 w-4 text-muted" />
             <input
               type="text"
-              placeholder="Search conversations…"
+              placeholder="Search conversations..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full rounded-2xl bg-white py-1.5 pl-9 pr-4 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full rounded-2xl bg-white py-2 pl-10 pr-4 text-sm ring-1 ring-line shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
             {searchInput ? (
               <button
@@ -356,7 +356,7 @@ export function MessagesPage() {
                   setSearchInput("");
                   setSearchFilter("");
                 }}
-                className="absolute right-3 top-2.5 text-muted hover:text-ink"
+                className="absolute right-3.5 top-3 text-muted hover:text-ink"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -367,21 +367,23 @@ export function MessagesPage() {
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           {conversationsQuery.isLoading ? (
-            <Spinner label="Loading messages" />
+            <div className="py-12">
+              <Spinner label="Loading messages..." />
+            </div>
           ) : conversationList.length === 0 ? (
-            <div className="p-6 text-center">
-              <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+            <div className="p-8 text-center">
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand-600 shadow-inner">
                 <MessageSquare className="h-6 w-6" />
               </div>
-              <p className="mt-3 text-sm font-bold text-ink">No conversations yet</p>
-              <p className="mt-1 text-xs text-muted">
-                Connect with {currentUser?.role === "worker" ? "employers" : "candidates"} to discuss jobs.
+              <p className="mt-4 font-bold text-ink">No conversations yet</p>
+              <p className="mt-1 text-xs text-muted leading-relaxed">
+                Connect with {currentUser?.role === "worker" ? "employers" : "candidates"} to discuss opportunities.
               </p>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => setIsNewChatModalOpen(true)}
-                className="mt-4 text-xs"
+                className="mt-5 text-xs"
               >
                 Start a Conversation
               </Button>
@@ -410,8 +412,8 @@ export function MessagesPage() {
                       setSearchParams({ conversationId: conv._id });
                     }}
                     className={cn(
-                      "flex w-full items-start gap-3 p-3.5 text-left transition hover:bg-white",
-                      isSelected && "bg-white shadow-sm ring-1 ring-brand-100",
+                      "flex w-full items-start gap-3.5 p-4 text-left transition-colors hover:bg-white/80",
+                      isSelected && "bg-white shadow-sm ring-1 ring-brand-100/80",
                     )}
                   >
                     {/* Avatar with live status dot */}
@@ -419,11 +421,11 @@ export function MessagesPage() {
                       <Avatar
                         name={participant?.fullName}
                         src={participant?.profileImage}
-                        className="h-11 w-11"
+                        className="h-12 w-12 shadow-sm"
                       />
                       <span
                         className={cn(
-                          "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white",
+                          "absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white",
                           isOnline ? "bg-emerald-500" : "bg-slate-300",
                         )}
                         title={isOnline ? "Online" : "Offline"}
@@ -436,14 +438,14 @@ export function MessagesPage() {
                         <p className="truncate text-sm font-bold text-ink">
                           {participant?.fullName ?? "User"}
                         </p>
-                        <span className="shrink-0 text-[11px] text-muted">
+                        <span className="shrink-0 text-[11px] font-medium text-muted">
                           {conv.lastMessageAt ? timeAgo(conv.lastMessageAt) : ""}
                         </span>
                       </div>
 
                       {/* Role & Job Context */}
-                      <div className="mt-0.5 flex items-center gap-1.5">
-                        <span className="text-[11px] font-medium capitalize text-brand-600">
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-600">
                           {participant?.role ?? "User"}
                         </span>
                         {jobTitle ? (
@@ -457,7 +459,7 @@ export function MessagesPage() {
                       </div>
 
                       {/* Last message preview */}
-                      <div className="mt-1 flex items-center justify-between gap-2">
+                      <div className="mt-1.5 flex items-center justify-between gap-2">
                         <p
                           className={cn(
                             "truncate text-xs",
@@ -491,12 +493,12 @@ export function MessagesPage() {
         {activeId && currentConversation ? (
           <>
             {/* Chat Top Header */}
-            <div className="flex h-16 shrink-0 items-center justify-between border-b border-line px-4 lg:px-6">
-              <div className="flex items-center gap-3">
+            <div className="flex h-20 shrink-0 items-center justify-between border-b border-line px-6 lg:px-8">
+              <div className="flex items-center gap-4">
                 {/* Mobile Back Button */}
                 <button
                   onClick={() => setShowMobileChat(false)}
-                  className="rounded-full p-1.5 text-muted hover:bg-slate-100 md:hidden"
+                  className="rounded-full p-2 text-muted transition-colors hover:bg-surface hover:text-ink md:hidden"
                   aria-label="Back to conversations"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -507,11 +509,11 @@ export function MessagesPage() {
                   <Avatar
                     name={otherParticipant?.fullName}
                     src={otherParticipant?.profileImage}
-                    className="h-10 w-10"
+                    className="h-11 w-11 shadow-sm"
                   />
                   <span
                     className={cn(
-                      "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white",
+                      "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white",
                       isOtherOnline ? "bg-emerald-500" : "bg-slate-300",
                     )}
                   />
@@ -519,8 +521,8 @@ export function MessagesPage() {
 
                 {/* Name & Status */}
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-sm font-extrabold text-ink sm:text-base">
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-base font-extrabold text-ink sm:text-lg">
                       {otherParticipant?.fullName ?? "Conversation"}
                     </h2>
                     {otherParticipant?.role ? (
@@ -529,11 +531,11 @@ export function MessagesPage() {
                       </Badge>
                     ) : null}
                   </div>
-                  <p className="text-xs text-muted">
+                  <p className="mt-0.5 text-xs font-medium text-muted">
                     {isOtherTyping ? (
-                      <span className="font-medium text-brand-600 animate-pulse">Typing…</span>
+                      <span className="font-semibold text-brand-600 animate-pulse">Typing...</span>
                     ) : isOtherOnline ? (
-                      <span className="font-medium text-emerald-600">Online</span>
+                      <span className="font-semibold text-emerald-600">Online</span>
                     ) : (
                       "Offline"
                     )}
@@ -546,10 +548,10 @@ export function MessagesPage() {
                 <div className="hidden sm:block">
                   <Link
                     to={`/jobs/${(currentConversation.jobId as { _id?: string })._id}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 transition hover:bg-brand-100"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-surface px-3.5 py-1.5 text-xs font-semibold text-brand-700 ring-1 ring-line transition-colors hover:bg-brand-50"
                   >
-                    <Briefcase className="h-3.5 w-3.5" />
-                    <span className="max-w-[180px] truncate">
+                    <Briefcase className="h-4 w-4 text-brand-600" />
+                    <span className="max-w-[200px] truncate">
                       {(currentConversation.jobId as { title?: string }).title}
                     </span>
                   </Link>
@@ -558,27 +560,29 @@ export function MessagesPage() {
             </div>
 
             {/* Messages Viewport */}
-            <div className="flex-1 overflow-y-auto p-4 lg:p-6 scrollbar-thin bg-gradient-to-b from-surface/20 to-white">
+            <div className="flex-1 overflow-y-auto p-6 lg:p-8 scrollbar-thin bg-gradient-to-b from-surface/20 to-white">
               {messagesQuery.isLoading ? (
-                <Spinner label="Loading conversation history" />
+                <div className="py-16">
+                  <Spinner label="Loading conversation history..." />
+                </div>
               ) : messages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <div className="grid h-14 w-14 place-items-center rounded-3xl bg-brand-50 text-brand-600">
-                    <MessageSquare className="h-7 w-7" />
+                  <div className="grid h-16 w-16 place-items-center rounded-3xl bg-brand-50 text-brand-600 shadow-inner">
+                    <MessageSquare className="h-8 w-8" />
                   </div>
-                  <p className="mt-3 font-extrabold text-ink">Start the conversation</p>
-                  <p className="mt-1 max-w-xs text-xs text-muted">
-                    Send a message to introduce yourself or discuss job requirements and next steps.
+                  <p className="mt-4 text-lg font-bold text-ink">Start the conversation</p>
+                  <p className="mt-1 max-w-sm text-sm text-muted leading-relaxed">
+                    Send a message to introduce yourself, clarify requirements, or schedule next steps.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {messagesQuery.data?.meta?.hasNextPage ? (
                     <div className="flex justify-center">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-xs"
+                        className="text-xs bg-white shadow-sm"
                         onClick={() => void loadOlderMessages()}
                       >
                         Load earlier messages
@@ -593,14 +597,14 @@ export function MessagesPage() {
                       !prevMsg || !isSameDay(prevMsg.createdAt, msg.createdAt);
 
                     return (
-                      <div key={msg._id} className="space-y-3">
+                      <div key={msg._id} className="space-y-4">
                         {/* Date Divider */}
                         {showDateDivider ? (
-                          <div className="relative my-4 flex items-center justify-center">
+                          <div className="relative my-6 flex items-center justify-center">
                             <div className="absolute inset-0 flex items-center">
                               <div className="w-full border-t border-line/60" />
                             </div>
-                            <span className="relative rounded-full bg-surface px-3 py-0.5 text-[11px] font-semibold text-muted shadow-xs">
+                            <span className="relative rounded-full bg-white px-4 py-1 text-xs font-semibold text-muted shadow-sm ring-1 ring-line">
                               {formatDate(msg.createdAt)}
                             </span>
                           </div>
@@ -609,7 +613,7 @@ export function MessagesPage() {
                         {/* Message Bubble */}
                         <div
                           className={cn(
-                            "flex items-end gap-2",
+                            "flex items-end gap-3",
                             isMe ? "justify-end" : "justify-start",
                           )}
                         >
@@ -617,23 +621,23 @@ export function MessagesPage() {
                             <Avatar
                               name={otherParticipant?.fullName}
                               src={otherParticipant?.profileImage}
-                              className="h-7 w-7 shrink-0 text-xs"
+                              className="h-8 w-8 shrink-0 text-xs shadow-sm"
                             />
                           )}
 
                           <div
                             className={cn(
-                              "relative max-w-[85%] sm:max-w-md rounded-2xl px-4 py-2.5 shadow-xs text-sm leading-relaxed",
+                              "relative max-w-[80%] sm:max-w-md rounded-3xl px-5 py-3 shadow-sm text-sm leading-relaxed",
                               isMe
-                                ? "bg-brand-600 text-white rounded-br-xs"
-                                : "bg-slate-100 text-ink rounded-bl-xs",
+                                ? "bg-brand-600 text-white rounded-br-md"
+                                : "bg-surface text-ink ring-1 ring-line/60 rounded-bl-md",
                             )}
                           >
                             <p className="whitespace-pre-wrap break-words">{msg.content}</p>
 
                             <div
                               className={cn(
-                                "mt-1 flex items-center justify-end gap-1 text-[10px]",
+                                "mt-1.5 flex items-center justify-end gap-1.5 text-[10px] font-medium",
                                 isMe ? "text-white/80" : "text-muted",
                               )}
                             >
@@ -660,16 +664,16 @@ export function MessagesPage() {
 
                   {/* Typing Indicator Bubble */}
                   {isOtherTyping && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <Avatar
                         name={otherParticipant?.fullName}
                         src={otherParticipant?.profileImage}
-                        className="h-7 w-7 shrink-0 text-xs"
+                        className="h-8 w-8 shrink-0 text-xs shadow-sm"
                       />
-                      <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-xs bg-slate-100 px-4 py-3 text-muted">
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted/70 [animation-delay:-0.3s]" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted/70 [animation-delay:-0.15s]" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted/70" />
+                      <div className="flex items-center gap-1.5 rounded-3xl rounded-bl-md bg-surface px-5 py-3.5 ring-1 ring-line/60 text-muted">
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-brand-600 [animation-delay:-0.3s]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-brand-600 [animation-delay:-0.15s]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-brand-600" />
                       </div>
                     </div>
                   )}
@@ -680,8 +684,8 @@ export function MessagesPage() {
             </div>
 
             {/* Bottom Message Input Bar */}
-            <div className="border-t border-line bg-white p-3 sm:p-4">
-              <form onSubmit={handleSendMessage} className="flex items-end gap-2">
+            <div className="border-t border-line bg-white p-4 sm:p-5">
+              <form onSubmit={handleSendMessage} className="flex items-end gap-3">
                 <div className="relative flex-1">
                   <textarea
                     ref={textareaRef}
@@ -689,8 +693,8 @@ export function MessagesPage() {
                     value={messageText}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type a message… (Press Enter to send)"
-                    className="w-full resize-none rounded-2xl bg-surface/60 px-4 py-2.5 text-sm ring-1 ring-line focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 max-h-32"
+                    placeholder="Type a message... (Press Enter to send)"
+                    className="w-full resize-none rounded-2xl bg-surface/60 px-4 py-3 text-sm ring-1 ring-line shadow-inner focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 max-h-32 transition-all"
                   />
                 </div>
                 <Button
@@ -698,7 +702,7 @@ export function MessagesPage() {
                   size="md"
                   variant="primary"
                   disabled={!messageText.trim() || sendMessageMutation.isPending}
-                  className="h-10 w-10 shrink-0 rounded-2xl p-0"
+                  className="h-11 w-11 shrink-0 rounded-2xl p-0 shadow-sm"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
@@ -708,17 +712,17 @@ export function MessagesPage() {
         ) : (
           /* Desktop Empty State */
           <div className="hidden h-full flex-col items-center justify-center p-8 text-center md:flex">
-            <div className="grid h-16 w-16 place-items-center rounded-3xl bg-brand-50 text-brand-600 shadow-sm">
-              <MessageSquare className="h-8 w-8" />
+            <div className="grid h-20 w-20 place-items-center rounded-3xl bg-brand-50 text-brand-600 shadow-sm">
+              <MessageSquare className="h-10 w-10" />
             </div>
-            <h2 className="mt-4 text-xl font-extrabold text-ink">
+            <h2 className="mt-6 text-xl font-extrabold text-ink">
               Select a conversation
             </h2>
-            <p className="mt-1 max-w-sm text-sm text-muted">
+            <p className="mt-2 max-w-sm text-sm text-muted leading-relaxed">
               Choose an existing chat from the left or initiate a new conversation with a candidate or employer.
             </p>
             <Button
-              className="mt-5"
+              className="mt-6 gap-2 shadow-sm"
               onClick={() => setIsNewChatModalOpen(true)}
             >
               <Plus className="h-4 w-4" /> Start New Conversation
@@ -730,88 +734,82 @@ export function MessagesPage() {
       {/* NEW CONVERSATION MODAL */}
       {isNewChatModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="relative flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-line">
+          <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-line">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-line p-4">
+            <div className="flex items-center justify-between border-b border-line px-6 py-5 sm:px-8">
               <div>
-                <h3 className="text-lg font-extrabold text-ink">New Conversation</h3>
-                <p className="text-xs text-muted">
-                  Choose a contact to begin messaging
+                <h3 className="text-lg font-extrabold text-ink">Start New Conversation</h3>
+                <p className="text-xs text-muted mt-0.5">
+                  Select a contact to begin chatting
                 </p>
               </div>
               <button
                 onClick={() => setIsNewChatModalOpen(false)}
-                className="rounded-full p-1 text-muted hover:bg-slate-100"
+                className="rounded-full p-2 text-muted transition-colors hover:bg-surface hover:text-ink"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Modal Search */}
-            <div className="border-b border-line p-3">
+            <div className="border-b border-line p-4 sm:px-8">
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted" />
+                <Search className="absolute left-3.5 top-3 h-4 w-4 text-muted" />
                 <input
                   type="text"
-                  placeholder="Search contacts…"
+                  placeholder="Search contacts by name or role..."
                   value={contactSearch}
                   onChange={(e) => setContactSearch(e.target.value)}
-                  className="w-full rounded-2xl bg-surface/50 py-1.5 pl-9 pr-4 text-sm ring-1 ring-line focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full rounded-2xl bg-surface/50 py-2.5 pl-10 pr-4 text-sm ring-1 ring-line focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
                 />
               </div>
             </div>
 
             {/* Contacts List */}
-            <div className="flex-1 overflow-y-auto p-2 scrollbar-thin max-h-96">
+            <div className="flex-1 overflow-y-auto p-4 sm:px-8 scrollbar-thin max-h-96 divide-y divide-line/60">
               {contactsQuery.isLoading ? (
-                <Spinner label="Loading contacts" />
+                <div className="py-12">
+                  <Spinner label="Loading contacts..." />
+                </div>
               ) : filteredContacts.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted">
-                  <p className="font-semibold text-ink">No contacts found</p>
-                  <p className="mt-1 text-xs">
+                <div className="py-12 text-center text-sm text-muted">
+                  <p className="font-bold text-ink">No contacts found</p>
+                  <p className="mt-1 text-xs leading-relaxed">
                     {currentUser?.role === "worker"
-                      ? "Apply for jobs or search listings to connect with recruiters."
+                      ? "Apply for jobs or explore listings to connect with recruiters."
                       : "Workers who apply to your job postings will appear here."}
                   </p>
                 </div>
               ) : (
-                <div className="space-y-1">
-                  {filteredContacts.map((contact) => (
-                    <button
-                      key={contact.userId + (contact.jobId || "")}
-                      onClick={() => {
-                        startConversationMutation.mutate({
-                          recipientId: contact.userId,
-                          jobId: contact.jobId,
-                          applicationId: contact.applicationId,
-                        });
-                      }}
-                      disabled={startConversationMutation.isPending}
-                      className="flex w-full items-center gap-3 rounded-2xl p-2.5 text-left transition hover:bg-brand-50"
-                    >
+                filteredContacts.map((contact) => (
+                  <button
+                    key={contact.applicationId}
+                    onClick={() => {
+                      startConversation({ recipientId: contact.userId, applicationId: contact.applicationId });
+                    }}
+                    className="flex w-full items-center justify-between gap-4 py-3.5 text-left transition-colors hover:bg-surface/60 px-3 rounded-2xl"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
                       <Avatar
                         name={contact.fullName}
                         src={contact.profileImage}
-                        className="h-10 w-10 shrink-0"
+                        className="h-11 w-11 shrink-0 shadow-sm"
                       />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <p className="truncate text-sm font-bold text-ink">
-                            {contact.fullName}
-                          </p>
-                          <Badge tone={contact.role === "employer" ? "blue" : "violet"}>
-                            {titleCase(contact.role)}
-                          </Badge>
-                        </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-ink">{contact.fullName}</p>
+                        <p className="truncate text-xs text-muted">{contact.email}</p>
                         {contact.context ? (
-                          <p className="truncate text-xs text-muted">
+                          <p className="mt-0.5 truncate text-[11px] font-medium text-brand-600">
                             {contact.context}
                           </p>
                         ) : null}
                       </div>
-                    </button>
-                  ))}
-                </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="shrink-0">
+                      Message
+                    </Button>
+                  </button>
+                ))
               )}
             </div>
           </div>
@@ -820,5 +818,3 @@ export function MessagesPage() {
     </div>
   );
 }
-
-export default MessagesPage;
