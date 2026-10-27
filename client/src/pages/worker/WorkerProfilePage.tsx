@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Briefcase,
-  FileText,
+  FileText, // ✅ UNCOMMENTED
   GraduationCap,
   Plus,
   Trash2,
@@ -210,6 +210,7 @@ function WorkerProfileEditor({
     queryFn: () => catalogService.categories().then((r) => r.data ?? []),
   });
 
+  // ✅ UNCOMMENTED: resumes query
   const resumes = useQuery({
     queryKey: queryKeys.resumes,
     queryFn: () => resumeService.list().then((r) => r.data ?? []),
@@ -332,8 +333,12 @@ function WorkerProfileEditor({
       preferredJobTypes: form.preferredJobTypes,
       preferredLocations: form.preferredLocations.filter(Boolean),
       preferredWorkTypes: form.preferredWorkTypes,
-      minimumSalary: form.minimumSalary ? Number(form.minimumSalary) : undefined,
-      maximumSalary: form.maximumSalary ? Number(form.maximumSalary) : undefined,
+      minimumSalary: form.minimumSalary
+        ? Number(form.minimumSalary)
+        : undefined,
+      maximumSalary: form.maximumSalary
+        ? Number(form.maximumSalary)
+        : undefined,
       availableFrom: form.availableFrom
         ? new Date(form.availableFrom).toISOString()
         : undefined,
@@ -389,6 +394,7 @@ function WorkerProfileEditor({
     onError: (error: Error) => setMessage(error.message),
   });
 
+  // ✅ UNCOMMENTED: replaceResume mutation
   const replaceResume = useMutation({
     mutationFn: ({ id, file }: { id: string; file: File }) =>
       resumeService.replace(id, file),
@@ -400,6 +406,7 @@ function WorkerProfileEditor({
     onError: (error: Error) => setMessage(error.message),
   });
 
+  // ✅ UNCOMMENTED: removeResume mutation
   const removeResume = useMutation({
     mutationFn: (id: string) => resumeService.remove(id),
     onSuccess: () => {
@@ -469,16 +476,17 @@ function WorkerProfileEditor({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
         {/* Main Editor Form */}
         <form
-          className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line sm:p-8 space-y-8"
+          className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line/80 sm:p-10 space-y-10"
           onSubmit={(event) => {
             event.preventDefault();
             saveProfile.mutate();
           }}
         >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          {/* Header Section */}
+          <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-brand-700">
                 Candidate Dashboard
@@ -491,7 +499,7 @@ function WorkerProfileEditor({
                 application requirements.
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               {profile ? (
                 <Button
                   type="button"
@@ -508,8 +516,10 @@ function WorkerProfileEditor({
             </div>
           </div>
 
+          {/* Section 1: Basic Information */}
           <div className="space-y-6">
-            <div className="grid gap-5 md:grid-cols-2">
+            <h2 className="text-base font-bold text-ink">Basic Information</h2>
+            <div className="grid gap-6 sm:grid-cols-2">
               <Field label="Full name">
                 <Input
                   value={fullName}
@@ -530,7 +540,7 @@ function WorkerProfileEditor({
 
             <Field label="Professional summary">
               <Textarea
-                rows={5}
+                rows={4}
                 value={form.professionalSummary}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -542,8 +552,14 @@ function WorkerProfileEditor({
                 className="resize-y"
               />
             </Field>
+          </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+          {/* Section 2: Online Profiles & Financial Expectations */}
+          <div className="space-y-6 pt-6 border-t border-line">
+            <h2 className="text-base font-bold text-ink">
+              Links & Availability
+            </h2>
+            <div className="grid gap-6 sm:grid-cols-2">
               <Field label="Website URL">
                 <Input
                   type="url"
@@ -615,19 +631,26 @@ function WorkerProfileEditor({
                 />
               </Field>
             </div>
+          </div>
 
-            {/* ------------------- Skills (multi-select chips) ------------------- */}
+          {/* Section 3: Skills & Category */}
+          <div className="space-y-6 pt-6 border-t border-line">
+            <h2 className="text-base font-bold text-ink">
+              Skills & Classification
+            </h2>
+
+            {/* Skills Multi-select */}
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <label className="text-sm font-semibold text-ink">Skills</label>
                 {form.skills.length > 0 ? (
-                  <span className="text-xs text-muted">
+                  <span className="text-xs font-medium text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full ring-1 ring-brand-100">
                     {form.skills.length} selected
                   </span>
                 ) : null}
               </div>
 
-              <div className="rounded-2xl border border-line bg-surface/40 p-3 ring-1 ring-line/50">
+              <div className="rounded-2xl border border-line bg-surface/30 p-4">
                 <div className="flex flex-wrap gap-2">
                   {(skillList.data ?? []).map((skill) => {
                     const isSelected = form.skills.some(
@@ -638,10 +661,10 @@ function WorkerProfileEditor({
                         key={skill._id}
                         type="button"
                         onClick={() => toggleSkill(skill._id)}
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                           isSelected
-                            ? "border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-100"
-                            : "border-line bg-white text-muted hover:text-ink"
+                            ? "bg-brand-50 text-brand-700 ring-1 ring-brand-200 shadow-sm"
+                            : "border border-line bg-white text-muted hover:border-brand-300 hover:text-ink"
                         }`}
                       >
                         {skill.name}
@@ -656,7 +679,7 @@ function WorkerProfileEditor({
               </div>
             </div>
 
-            {/* ------------------- Category (single-select w/ search) ------------------- */}
+            {/* Category Single-select */}
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <label className="text-sm font-semibold text-ink">
@@ -669,10 +692,10 @@ function WorkerProfileEditor({
                 ) : null}
               </div>
 
-              <div className="rounded-2xl border border-line bg-surface/30 p-4 ring-1 ring-line/50 space-y-3">
+              <div className="rounded-2xl border border-line bg-surface/30 p-4 space-y-3">
                 {/* Selected Category Pill Display */}
                 {selectedCategoryId ? (
-                  <div className="flex min-h-[2.5rem] flex-wrap items-center gap-2">
+                  <div className="flex min-h-[2rem] items-center gap-2">
                     {(() => {
                       const selectedCat = (categoryList.data ?? []).find(
                         (c) => c._id === selectedCategoryId,
@@ -681,7 +704,7 @@ function WorkerProfileEditor({
                       return (
                         <span
                           key={selectedCat._id}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3.5 py-1.5 text-xs font-semibold text-brand-700 ring-1 ring-brand-100"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-100"
                         >
                           {selectedCat.name}
                           <button
@@ -697,19 +720,19 @@ function WorkerProfileEditor({
                     })()}
                   </div>
                 ) : (
-                  <span className="block text-sm text-muted">
+                  <span className="block text-xs text-muted">
                     No category selected yet
                   </span>
                 )}
 
-                {/* Single Input Search */}
+                {/* Input Search */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1">
                     <Input
                       value={categorySearchQuery ?? ""}
                       onChange={(e) => setCategorySearchQuery?.(e.target.value)}
                       placeholder="Search categories..."
-                      className="w-full bg-white"
+                      className="w-full bg-white text-xs"
                     />
                   </div>
                   <span className="shrink-0 text-xs font-semibold text-muted">
@@ -718,7 +741,7 @@ function WorkerProfileEditor({
                 </div>
 
                 {/* Scrollable List Panel */}
-                <div className="max-h-48 overflow-y-auto rounded-xl border border-line bg-white shadow-sm">
+                <div className="max-h-44 overflow-y-auto rounded-xl border border-line bg-white shadow-sm">
                   {(() => {
                     const filteredCategories = (categoryList.data ?? []).filter(
                       (cat) =>
@@ -739,7 +762,7 @@ function WorkerProfileEditor({
                     }
 
                     return (
-                      <ul className="divide-y divide-line">
+                      <ul className="divide-y divide-line/60">
                         {filteredCategories.map((category) => {
                           const isSelected =
                             selectedCategoryId === category._id;
@@ -747,15 +770,19 @@ function WorkerProfileEditor({
                             <li key={category._id}>
                               <button
                                 type="button"
-                                className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors hover:bg-brand-50/60 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex w-full items-center justify-between px-4 py-2 text-left text-xs transition-colors hover:bg-brand-50/50"
                                 onClick={() => selectCategory(category._id)}
                               >
                                 <span
-                                  className={`font-medium ${isSelected ? "text-brand-700 font-bold" : "text-ink"}`}
+                                  className={`font-medium ${
+                                    isSelected
+                                      ? "text-brand-700 font-bold"
+                                      : "text-ink"
+                                  }`}
                                 >
                                   {category.name}
                                 </span>
-                                <span className="text-xs font-semibold text-brand-700">
+                                <span className="text-[11px] font-semibold text-brand-700">
                                   {isSelected ? "Selected" : "+ Select"}
                                 </span>
                               </button>
@@ -768,6 +795,11 @@ function WorkerProfileEditor({
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Section 4: Work Preferences */}
+          <div className="space-y-6 pt-6 border-t border-line">
+            <h2 className="text-base font-bold text-ink">Work Preferences</h2>
 
             <div className="space-y-3">
               <label className="text-sm font-semibold text-ink">
@@ -786,10 +818,10 @@ function WorkerProfileEditor({
                   <button
                     key={type}
                     type="button"
-                    className={`rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
                       form.preferredJobTypes.includes(type)
-                        ? "border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-100"
-                        : "border-line bg-surface/50 text-muted hover:text-ink"
+                        ? "bg-brand-50 text-brand-700 ring-1 ring-brand-200 shadow-sm"
+                        : "border border-line bg-white text-muted hover:border-brand-300 hover:text-ink"
                     }`}
                     onClick={() =>
                       toggleValue(
@@ -807,7 +839,7 @@ function WorkerProfileEditor({
 
             <div className="space-y-3">
               <label className="text-sm font-semibold text-ink">
-                Preferred work types
+                Preferred work environments
               </label>
               <div className="flex flex-wrap gap-2">
                 {(
@@ -818,10 +850,10 @@ function WorkerProfileEditor({
                   <button
                     key={type}
                     type="button"
-                    className={`rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
                       form.preferredWorkTypes.includes(type)
-                        ? "border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-100"
-                        : "border-line bg-surface/50 text-muted hover:text-ink"
+                        ? "bg-brand-50 text-brand-700 ring-1 ring-brand-200 shadow-sm"
+                        : "border border-line bg-white text-muted hover:border-brand-300 hover:text-ink"
                     }`}
                     onClick={() =>
                       toggleValue(
@@ -854,324 +886,326 @@ function WorkerProfileEditor({
                 className="resize-y"
               />
             </Field>
+          </div>
 
-            {/* Education Section */}
-            <div className="space-y-6 pt-4 border-t border-line">
-              <div className="flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
-                  <GraduationCap className="h-5 w-5 text-brand-600" /> Education
-                  History
-                </h2>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={addEducation}
-                  className="gap-1.5"
+          {/* Section 5: Education Section */}
+          <div className="space-y-6 pt-6 border-t border-line">
+            <div className="flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-base font-bold text-ink">
+                <GraduationCap className="h-5 w-5 text-brand-600" /> Education
+                History
+              </h2>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={addEducation}
+                className="gap-1.5 text-xs"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add Education
+              </Button>
+            </div>
+
+            <div className="space-y-6">
+              {form.education.map((education, index) => (
+                <div
+                  key={`education-${index}`}
+                  className="rounded-2xl border border-line/80 bg-surface/20 p-5 space-y-4"
                 >
-                  <Plus className="h-4 w-4" /> Add Education
-                </Button>
-              </div>
+                  <div className="flex items-center justify-between border-b border-line/60 pb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted">
+                      Education #{index + 1}
+                    </span>
+                    {form.education.length > 1 ? (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors"
+                        onClick={() => removeEducation(index)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Remove
+                      </button>
+                    ) : null}
+                  </div>
 
-              <div className="space-y-4">
-                {form.education.map((education, index) => (
-                  <div
-                    key={`education-${index}`}
-                    className="rounded-2xl border border-line bg-surface/40 p-5 ring-1 ring-line/50"
-                  >
-                    <div className="mb-4 flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-muted">
-                        Education #{index + 1}
-                      </span>
-                      {form.education.length > 1 ? (
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700"
-                          onClick={() => removeEducation(index)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" /> Remove
-                        </button>
-                      ) : null}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Field label="Institution">
+                      <Input
+                        value={education.institution}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            education: prev.education.map((item, i) =>
+                              i === index
+                                ? { ...item, institution: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                        placeholder="e.g. Stanford University"
+                      />
+                    </Field>
+                    <Field label="Degree">
+                      <Input
+                        value={education.degree}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            education: prev.education.map((item, i) =>
+                              i === index
+                                ? { ...item, degree: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                        placeholder="e.g. Bachelor of Science"
+                      />
+                    </Field>
+                    <Field label="Field of study">
+                      <Input
+                        value={education.fieldOfStudy}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            education: prev.education.map((item, i) =>
+                              i === index
+                                ? { ...item, fieldOfStudy: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                        placeholder="e.g. Computer Science"
+                      />
+                    </Field>
+                    <Field label="Description">
+                      <Input
+                        value={education.description}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            education: prev.education.map((item, i) =>
+                              i === index
+                                ? { ...item, description: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                        placeholder="Honors, activities..."
+                      />
+                    </Field>
+                    <Field label="Start date">
+                      <Input
+                        type="date"
+                        value={education.startDate}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            education: prev.education.map((item, i) =>
+                              i === index
+                                ? { ...item, startDate: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                      />
+                    </Field>
+                    <Field label="End date">
+                      <Input
+                        type="date"
+                        value={education.endDate}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            education: prev.education.map((item, i) =>
+                              i === index
+                                ? { ...item, endDate: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                      />
+                    </Field>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Section 6: Experience Section */}
+          <div className="space-y-6 pt-6 border-t border-line">
+            <div className="flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-base font-bold text-ink">
+                <Briefcase className="h-5 w-5 text-brand-600" /> Work Experience
+              </h2>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={addExperience}
+                className="gap-1.5 text-xs"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add Experience
+              </Button>
+            </div>
+
+            <div className="space-y-6">
+              {form.experience.map((experience, index) => (
+                <div
+                  key={`experience-${index}`}
+                  className="rounded-2xl border border-line/80 bg-surface/20 p-5 space-y-4"
+                >
+                  <div className="flex items-center justify-between border-b border-line/60 pb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted">
+                      Experience #{index + 1}
+                    </span>
+                    {form.experience.length > 1 ? (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors"
+                        onClick={() => removeExperience(index)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Remove
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Field label="Company">
+                      <Input
+                        value={experience.company}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            experience: prev.experience.map((item, i) =>
+                              i === index
+                                ? { ...item, company: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                        placeholder="e.g. Acme Inc."
+                      />
+                    </Field>
+                    <Field label="Job title">
+                      <Input
+                        value={experience.jobTitle}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            experience: prev.experience.map((item, i) =>
+                              i === index
+                                ? { ...item, jobTitle: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                        placeholder="e.g. Senior Frontend Developer"
+                      />
+                    </Field>
+                    <Field label="Location">
+                      <Input
+                        value={experience.location}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            experience: prev.experience.map((item, i) =>
+                              i === index
+                                ? { ...item, location: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                        placeholder="e.g. Remote"
+                      />
+                    </Field>
+                    <div className="flex items-center gap-3 pt-6 md:pt-7">
+                      <input
+                        type="checkbox"
+                        id={`current-role-${index}`}
+                        checked={experience.isCurrent}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            experience: prev.experience.map((item, i) =>
+                              i === index
+                                ? { ...item, isCurrent: e.target.checked }
+                                : item,
+                            ),
+                          }))
+                        }
+                        className="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-500"
+                      />
+                      <label
+                        htmlFor={`current-role-${index}`}
+                        className="text-xs font-medium text-ink cursor-pointer select-none"
+                      >
+                        I currently work here
+                      </label>
                     </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <Field label="Institution">
-                        <Input
-                          value={education.institution}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              education: prev.education.map((item, i) =>
-                                i === index
-                                  ? { ...item, institution: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          placeholder="e.g. Stanford University"
-                        />
-                      </Field>
-                      <Field label="Degree">
-                        <Input
-                          value={education.degree}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              education: prev.education.map((item, i) =>
-                                i === index
-                                  ? { ...item, degree: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          placeholder="e.g. Bachelor of Science"
-                        />
-                      </Field>
-                      <Field label="Field of study">
-                        <Input
-                          value={education.fieldOfStudy}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              education: prev.education.map((item, i) =>
-                                i === index
-                                  ? { ...item, fieldOfStudy: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          placeholder="e.g. Computer Science"
-                        />
-                      </Field>
+                    <Field label="Start date">
+                      <Input
+                        type="date"
+                        value={experience.startDate}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            experience: prev.experience.map((item, i) =>
+                              i === index
+                                ? { ...item, startDate: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                      />
+                    </Field>
+                    <Field label="End date">
+                      <Input
+                        type="date"
+                        value={experience.endDate}
+                        disabled={experience.isCurrent}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            experience: prev.experience.map((item, i) =>
+                              i === index
+                                ? { ...item, endDate: e.target.value }
+                                : item,
+                            ),
+                          }))
+                        }
+                      />
+                    </Field>
+                    <div className="md:col-span-2">
                       <Field label="Description">
-                        <Input
-                          value={education.description}
+                        <Textarea
+                          rows={3}
+                          value={experience.description}
                           onChange={(e) =>
                             setForm((prev) => ({
                               ...prev,
-                              education: prev.education.map((item, i) =>
+                              experience: prev.experience.map((item, i) =>
                                 i === index
                                   ? { ...item, description: e.target.value }
                                   : item,
                               ),
                             }))
                           }
-                          placeholder="Honors, activities..."
-                        />
-                      </Field>
-                      <Field label="Start date">
-                        <Input
-                          type="date"
-                          value={education.startDate}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              education: prev.education.map((item, i) =>
-                                i === index
-                                  ? { ...item, startDate: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                        />
-                      </Field>
-                      <Field label="End date">
-                        <Input
-                          type="date"
-                          value={education.endDate}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              education: prev.education.map((item, i) =>
-                                i === index
-                                  ? { ...item, endDate: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
+                          placeholder="Describe your key responsibilities and achievements..."
+                          className="resize-y"
                         />
                       </Field>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Experience Section */}
-            <div className="space-y-6 pt-4 border-t border-line">
-              <div className="flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
-                  <Briefcase className="h-5 w-5 text-brand-600" /> Work
-                  Experience
-                </h2>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={addExperience}
-                  className="gap-1.5"
-                >
-                  <Plus className="h-4 w-4" /> Add Experience
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                {form.experience.map((experience, index) => (
-                  <div
-                    key={`experience-${index}`}
-                    className="rounded-2xl border border-line bg-surface/40 p-5 ring-1 ring-line/50"
-                  >
-                    <div className="mb-4 flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-muted">
-                        Experience #{index + 1}
-                      </span>
-                      {form.experience.length > 1 ? (
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700"
-                          onClick={() => removeExperience(index)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" /> Remove
-                        </button>
-                      ) : null}
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <Field label="Company">
-                        <Input
-                          value={experience.company}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              experience: prev.experience.map((item, i) =>
-                                i === index
-                                  ? { ...item, company: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          placeholder="e.g. Acme Inc."
-                        />
-                      </Field>
-                      <Field label="Job title">
-                        <Input
-                          value={experience.jobTitle}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              experience: prev.experience.map((item, i) =>
-                                i === index
-                                  ? { ...item, jobTitle: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          placeholder="e.g. Senior Frontend Developer"
-                        />
-                      </Field>
-                      <Field label="Location">
-                        <Input
-                          value={experience.location}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              experience: prev.experience.map((item, i) =>
-                                i === index
-                                  ? { ...item, location: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          placeholder="e.g. Remote"
-                        />
-                      </Field>
-                      <div className="flex items-center gap-3 pt-8">
-                        <input
-                          type="checkbox"
-                          id={`current-role-${index}`}
-                          checked={experience.isCurrent}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              experience: prev.experience.map((item, i) =>
-                                i === index
-                                  ? { ...item, isCurrent: e.target.checked }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          className="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-500"
-                        />
-                        <label
-                          htmlFor={`current-role-${index}`}
-                          className="text-sm font-medium text-ink"
-                        >
-                          I currently work here
-                        </label>
-                      </div>
-                      <Field label="Start date">
-                        <Input
-                          type="date"
-                          value={experience.startDate}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              experience: prev.experience.map((item, i) =>
-                                i === index
-                                  ? { ...item, startDate: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                        />
-                      </Field>
-                      <Field label="End date">
-                        <Input
-                          type="date"
-                          value={experience.endDate}
-                          disabled={experience.isCurrent}
-                          onChange={(e) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              experience: prev.experience.map((item, i) =>
-                                i === index
-                                  ? { ...item, endDate: e.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                        />
-                      </Field>
-                      <div className="md:col-span-2">
-                        <Field label="Description">
-                          <Textarea
-                            rows={3}
-                            value={experience.description}
-                            onChange={(e) =>
-                              setForm((prev) => ({
-                                ...prev,
-                                experience: prev.experience.map((item, i) =>
-                                  i === index
-                                    ? { ...item, description: e.target.value }
-                                    : item,
-                                ),
-                              }))
-                            }
-                            placeholder="Describe your key responsibilities and achievements..."
-                            className="resize-y"
-                          />
-                        </Field>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
 
+          {/* Footer Actions */}
           <div className="flex flex-col gap-4 pt-6 border-t border-line sm:flex-row sm:items-center sm:justify-between">
             <Button
               type="submit"
               disabled={saveProfile.isPending}
-              className="px-8"
+              className="px-8 shadow-sm"
             >
               {saveProfile.isPending
                 ? "Saving changes..."
@@ -1185,9 +1219,9 @@ function WorkerProfileEditor({
           </div>
         </form>
 
-        {/* Sidebar Resume Manager Column */}
-        <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line space-y-4">
+        {/* Sidebar Resume Manager */}
+        <aside className="space-y-6 lg:sticky lg:top-6">
+          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-line/80 space-y-4">
             <div>
               <h2 className="text-base font-bold text-ink">Resumes</h2>
               <p className="mt-1 text-xs text-muted leading-relaxed">
@@ -1200,9 +1234,9 @@ function WorkerProfileEditor({
             <div>
               <label
                 htmlFor="worker-upload-resume"
-                className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-brand-300 bg-brand-50/40 p-4 transition-colors hover:bg-brand-50/80"
+                className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-brand-300 bg-brand-50/30 p-4 transition-colors hover:bg-brand-50/70"
               >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-brand-700 shadow-sm">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-brand-700 shadow-sm transition-transform group-hover:scale-105">
                   <Upload className="h-4 w-4" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -1227,70 +1261,81 @@ function WorkerProfileEditor({
               />
             </div>
 
-            {/* Resumes List */}
-            <div className="space-y-3 pt-2">
-              {(resumes.data ?? []).map((resume) => (
-                <div
-                  key={resume._id}
-                  className="rounded-2xl bg-surface/60 p-4 ring-1 ring-line/60 space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <FileText className="h-4 w-4 shrink-0 text-brand-600" />
-                      <p className="truncate text-xs font-bold text-ink">
-                        {resume.originalName}
+            {/* ✅ ADDED: Resume List with replace & delete actions */}
+            {resumes.isLoading ? (
+              <p className="text-xs text-muted">Loading resumes...</p>
+            ) : resumes.isError ? (
+              <p className="text-xs text-rose-600">
+                {(resumes.error as Error)?.message ?? "Unable to load resumes."}
+              </p>
+            ) : (resumes.data ?? []).length === 0 ? (
+              <p className="text-xs text-muted">No resumes uploaded yet.</p>
+            ) : (
+              <ul className="space-y-2">
+                {(resumes.data ?? []).map((resume) => (
+                  <li
+                    key={resume._id}
+                    className="flex items-center gap-3 rounded-xl border border-line/70 bg-surface/30 px-3 py-2.5"
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-brand-700 shadow-sm">
+                      <FileText className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-semibold text-ink">
+                        {resume.fileName ?? "Resume"}
+                      </p>
+                      <p className="text-[11px] text-muted">
+                        {resume.mimeType?.toUpperCase() ?? "FILE"}
+                        {resume.size
+                          ? ` · ${(resume.size / 1024).toFixed(0)} KB`
+                          : ""}
                       </p>
                     </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-line/60 text-xs">
-                    {resume.cloudinaryUrl || resume.filePath ? (
-                      <a
-                        href={resume.cloudinaryUrl || resume.filePath}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-semibold text-brand-700 hover:underline"
+                    <div className="flex shrink-0 items-center gap-1">
+                      {/* Replace */}
+                      <label
+                        htmlFor={`replace-resume-${resume._id}`}
+                        className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-brand-700 transition-colors hover:bg-brand-50"
+                        title="Replace resume"
                       >
-                        View file
-                      </a>
-                    ) : (
-                      <span className="text-muted">Unavailable</span>
-                    )}
-
-                    <div className="flex items-center gap-3">
-                      <label className="cursor-pointer font-semibold text-brand-700 hover:underline">
-                        Replace
-                        <input
-                          type="file"
-                          accept=".pdf,.docx"
-                          className="sr-only"
-                          onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (file)
-                              replaceResume.mutate({ id: resume._id, file });
-                            event.target.value = "";
-                          }}
-                        />
+                        <Upload className="h-3.5 w-3.5" />
                       </label>
+                      <input
+                        id={`replace-resume-${resume._id}`}
+                        type="file"
+                        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        className="sr-only"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) {
+                            replaceResume.mutate({ id: resume._id, file });
+                          }
+                          event.target.value = "";
+                        }}
+                      />
+                      {/* Delete */}
                       <button
                         type="button"
-                        onClick={() => removeResume.mutate(resume._id)}
-                        className="font-semibold text-rose-600 hover:text-rose-700"
+                        className="grid h-7 w-7 place-items-center rounded-md text-rose-600 transition-colors hover:bg-rose-50"
+                        title="Delete resume"
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this resume?",
+                            )
+                          ) {
+                            removeResume.mutate(resume._id);
+                          }
+                        }}
+                        disabled={removeResume.isPending}
                       >
-                        Delete
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                  </div>
-                </div>
-              ))}
-
-              {(!resumes.data || resumes.data.length === 0) &&
-              !resumes.isLoading ? (
-                <p className="text-xs text-muted text-center py-4">
-                  No resumes uploaded yet.
-                </p>
-              ) : null}
-            </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </aside>
       </div>
