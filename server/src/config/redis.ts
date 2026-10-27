@@ -1,42 +1,33 @@
-import { Redis } from "ioredis";
+import { createClient } from "redis";
 import env from "./env.js";
-import logger from "../utils/logger.js";
 
-const redis = new Redis(env.REDIS_URL, {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: true,
+export const redisClient = createClient({
+  url: env.REDIS_URL,
+  socket: {
+    reconnectStrategy(retries) {
+      return Math.min(retries * 500, 5000);
+    },
+  },
 });
 
-redis.on("connect", () => {
-    logger.info("Redis connection established");
+redisClient.on("error", (error) => {
+  console.error("Redis connection error:", error.message);
 });
 
-redis.on("ready", () => {
-    logger.info("Redis is ready");
+redisClient.on("connect", () => {
+  console.log("Connecting to Redis...");
 });
 
-redis.on("error", (error: Error) => {
-    logger.error("Redis connection error", { error });
+redisClient.on("ready", () => {
+  console.log("Redis connection established successfully.");
 });
 
-redis.on("close", () => {
-    logger.warn("Redis connection closed");
+redisClient.on("reconnecting", () => {
+  console.log("Reconnecting to Redis...");
 });
-
-export const connectRedis = async (): Promise<void> => {
-    if (redis.status === "ready" || redis.status === "connecting") {
-        return;
-    }
-
-    await redis.connect();
-};
 
 export const disconnectRedis = async (): Promise<void> => {
-    if (redis.status === "end") {
-        return;
-    }
-
-    await redis.quit();
+  if (redisClient.isOpen) {
+    await redisClient.quit();
+  }
 };
-
-export default redis;
